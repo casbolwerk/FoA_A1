@@ -6,6 +6,7 @@ import random
 import time
 import math
 
+
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 
@@ -18,32 +19,72 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def __init__(self):
         super().__init__()
 
+
+    # Create a set of all moves that are valid given the board state and the list of taboo moves.
     def get_all_moves(self, game_state: GameState):
         N = game_state.board.N
-
-        print('N', N)
-
+        
+        rows = game_state.board.m
+        columns = game_state.board.n
+        
+        def check_square(i, j, value):
+            for p in range(((i-1)*rows), (i*rows)):
+                for q in range(((j-1)*columns), (j*columns)):
+                    if game_state.board.get(p, q) == value:
+                        return False
+            return True
+        
+        def check_column(j, value):
+            for p in range(N):
+                if game_state.board.get(p, j) == value:
+                    return False
+            return True
+        
+        def check_row(i, value):
+            for q in range(N):
+                if game_state.board.get(i, q) == value:
+                    return False
+            return True
+        
+        # Check whether a turn is possible:
+        # - the position of the board is non-empty
+        # - the particular value to be inserted in the empty board position is not in the list of taboo moves
+        # (DONE) - the value to be entered is not already included in the section
+        # (DONE) - the value to be entered is not already in the same row
+        # (DONE) - the value to be entered is not already in the same column
         def possible(i, j, value):
-            return game_state.board.get(i, j) == SudokuBoard.empty and not TabooMove(i, j, value) in game_state.taboo_moves
+            #compute which of the squares on the board the current position is in
+            introw = math.ceil((i+1)/rows)
+            intcol = math.ceil((j+1)/columns)
+            if not (check_column(j, value) == check_row(i, value) == check_square(introw, intcol, value) == True):
+                return False
+            else:
+                return game_state.board.get(i, j) == SudokuBoard.empty and not TabooMove(i, j, value) in game_state.taboo_moves 
 
         all_moves = [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if possible(i, j, value)]
 
         return all_moves
 
     # N.B. This is a very naive implementation.
-    def compute_best_move(self, game_state: GameState) -> None:
+    def compute_best_move(self, game_state: GameState) -> None:        
         all_moves = self.get_all_moves(game_state)
 
-        player_number = 1 if len(game_state.moves) % 2 == 0 else 2
-        move, _ = self.minimax(game_state, player_number, True, 8, -math.inf, math.inf)
+        move = random.choice(all_moves)
         self.propose_move(move)
         while True:
             time.sleep(0.2)
+            self.propose_move(random.choice(all_moves))
+            
+#        player_number = 1 if len(game_state.moves) % 2 == 0 else 2
+#        move, _ = self.minimax(game_state, player_number, True, 8, -math.inf, math.inf)
+#        self.propose_move(move)
+#        while True:
+#            time.sleep(0.2)
 
-            upd_game_state = game_state
-            upd_player_number = 1 if len(upd_game_state.moves) % 2 == 0 else 2
-            move, _ = self.minimax(upd_game_state, upd_player_number, True, 8, -math.inf, math.inf)
-            self.propose_move(move)
+#            upd_game_state = game_state
+#            upd_player_number = 1 if len(upd_game_state.moves) % 2 == 0 else 2
+#            move, _ = self.minimax(upd_game_state, upd_player_number, True, 8, -math.inf, math.inf)
+#            self.propose_move(move)
 
     def max(self, game_state: GameState, all_moves, player_number, depth, alpha, beta) -> (Move, int):
         max_score = -1*math.inf
@@ -127,3 +168,4 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             best_move, score = self.min(game_state, all_moves, player_number, depth, alpha, beta)
 
         return best_move, score
+
