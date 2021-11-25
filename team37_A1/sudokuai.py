@@ -5,6 +5,7 @@
 import random
 import time
 import math
+from copy import deepcopy
 
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
@@ -19,78 +20,108 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def __init__(self):
         super().__init__()
 
-
-    # Create a set of all moves that are valid given the board state and the list of taboo moves.
-    def get_all_moves(self, game_state: GameState):
-        N = game_state.board.N
-        
+    def check_square(self, game_state, i, j, value):
         rows = game_state.board.m
         columns = game_state.board.n
-        
-        def check_square(i, j, value):
-            for p in range(((i-1)*rows), (i*rows)):
-                for q in range(((j-1)*columns), (j*columns)):
-                    if game_state.board.get(p, q) == value:
-                        return False
-            return True
-        
-        def check_column(j, value):
-            for p in range(N):
-                if game_state.board.get(p, j) == value:
+        for p in range(((i - 1) * rows), (i * rows)):
+            for q in range(((j - 1) * columns), (j * columns)):
+                if game_state.board.get(p, q) == value:
                     return False
-            return True
-        
-        def check_row(i, value):
-            for q in range(N):
-                if game_state.board.get(i, q) == value:
-                    return False
-            return True
-        
-        # Check whether a turn is possible:
-        # - the position of the board is non-empty
-        # - the particular value to be inserted in the empty board position is not in the list of taboo moves
-        # (DONE) - the value to be entered is not already included in the section
-        # (DONE) - the value to be entered is not already in the same row
-        # (DONE) - the value to be entered is not already in the same column
-        def possible(i, j, value):
-            #compute which of the squares on the board the current position is in
-            introw = math.ceil((i+1)/rows)
-            intcol = math.ceil((j+1)/columns)
-            if not (check_column(j, value) == check_row(i, value) == check_square(introw, intcol, value) == True):
-                return False
-            else:
-                return game_state.board.get(i, j) == SudokuBoard.empty and not TabooMove(i, j, value) in game_state.taboo_moves 
+        return True
 
-        all_moves = [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if possible(i, j, value)]
+    def check_column(self, game_state, N, j, value):
+        for p in range(N):
+            if game_state.board.get(p, j) == value:
+                return False
+        return True
+
+    def check_row(self, game_state, N, i, value):
+        for q in range(N):
+            if game_state.board.get(i, q) == value:
+                return False
+        return True
+
+    # Check whether a turn is possible:
+    # - the position of the board is non-empty
+    # - the particular value to be inserted in the empty board position is not in the list of taboo moves
+    # (DONE) - the value to be entered is not already included in the section
+    # (DONE) - the value to be entered is not already in the same row
+    # (DONE) - the value to be entered is not already in the same column
+
+    def possible_move(self, game_state, i, j, value, rows, columns):
+        # compute which of the squares on the board the current position is in
+        introw = math.ceil((i + 1) / rows)
+        intcol = math.ceil((j + 1) / columns)
+        N = game_state.board.N
+        if not (self.check_column(game_state, N, j, value) == self.check_row(game_state, N, i, value) ==
+                self.check_square(game_state, introw, intcol, value) == True):
+            return False
+        else:
+            return game_state.board.get(i, j) == SudokuBoard.empty and not TabooMove(i, j,
+                                                                                     value) in game_state.taboo_moves
+
+    def get_all_moves(self, game_state: GameState):
+        N = game_state.board.N
+
+        rows = game_state.board.m
+        columns = game_state.board.n
+
+        all_moves = [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if
+                     self.possible_move(game_state, i, j, value, rows, columns)]
 
         return all_moves
+
+    def update_taboo_moves(self, game_state:GameState):
+        taboo_moves = []
+        if len(game_state.moves) > 0:
+            last_move = game_state.moves[-1]
+            i = last_move.i
+            j = last_move.j
+            value = last_move.value
+            N = game_state.board.N
+            rows = game_state.board.m
+            columns = game_state.board.n
+
+            for _j in range(N):
+                taboo_move = Move(i, _j, value)
+                if not self.possible_move(game_state, i, _j, value, rows, columns):
+                    taboo_moves.append(taboo_move)
+            for _i in range(N):
+                taboo_move = Move(_i, j, value)
+                if not self.possible_move(game_state, _i, j, value, rows, columns):
+                    taboo_moves.append(taboo_move)
+
+        if game_state.taboo_moves:
+            taboo_moves = game_state.taboo_moves + taboo_moves
+        else:
+            taboo_moves = taboo_moves
+        return taboo_moves
 
     # N.B. This is a very naive implementation.
     def compute_best_move(self, game_state: GameState) -> None:        
         all_moves = self.get_all_moves(game_state)
 
         move = random.choice(all_moves)
+        
+        player_number = 1 if len(game_state.moves) % 2 == 0 else 2
+        move, _ = self.minimax(game_state, player_number, True, 4, -math.inf, math.inf)
+        print('\r[MiniMax] FINAL MOVE:', move)
+        print(game_state.initial_board)
+        print(game_state.board)
         self.propose_move(move)
-        while True:
-            time.sleep(0.2)
-            self.propose_move(random.choice(all_moves))
-            
-#        player_number = 1 if len(game_state.moves) % 2 == 0 else 2
-#        move, _ = self.minimax(game_state, player_number, True, 8, -math.inf, math.inf)
-#        self.propose_move(move)
-#        while True:
-#            time.sleep(0.2)
-
-#            upd_game_state = game_state
-#            upd_player_number = 1 if len(upd_game_state.moves) % 2 == 0 else 2
-#            move, _ = self.minimax(upd_game_state, upd_player_number, True, 8, -math.inf, math.inf)
-#            self.propose_move(move)
+        # while True:
+        #     time.sleep(0.2)
+        
+        #     upd_game_state = game_state
+        #     upd_player_number = 1 if len(upd_game_state.moves) % 2 == 0 else 2
+        #     move, _ = self.minimax(upd_game_state, upd_player_number, True, 8, -math.inf, math.inf)
+        #     self.propose_move(move)
 
     def max(self, game_state: GameState, all_moves, player_number, depth, alpha, beta) -> (Move, int):
         max_score = -1*math.inf
         best_move = all_moves[0]
         for move in all_moves:
-            temp_game_state = game_state
+            temp_game_state = deepcopy(game_state)
             i = move.i
             j = move.j
             value = move.value
@@ -98,9 +129,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             curr_board.put(i, j, value)
             temp_game_state.board = curr_board
             temp_game_state.moves.append(move)
+            temp_game_state.taboo_moves = self.update_taboo_moves(game_state)
 
             curr_score = self.minimax(temp_game_state, player_number, False, depth - 1, alpha, beta)[1]
 
+            print(curr_score)
+            print(move)
             if curr_score > max_score:
                 max_score = curr_score
                 best_move = move
@@ -114,7 +148,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def min(self, game_state: GameState, all_moves, player_number, depth, alpha, beta) -> (Move, int):
         min_score = math.inf
         best_move = all_moves[0]
+        print([(move.i, move.j, move.value) for move in all_moves])
         for move in all_moves:
+            print(move)
             temp_game_state = game_state
             i = move.i
             j = move.j
@@ -124,8 +160,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             temp_game_state.board = curr_board
             temp_game_state.moves.append(move)
 
+            print(temp_game_state.board)
             curr_score = self.minimax(temp_game_state, player_number, True, depth - 1, alpha, beta)[1]
 
+            print(curr_score)
+            print(move)
             if curr_score < min_score:
                 min_score = curr_score
                 best_move = move
@@ -150,9 +189,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         all_moves = self.get_all_moves(game_state)
         max_moves = game_state.initial_board.squares.count(SudokuBoard.empty)
         number_of_moves = len(game_state.moves)
-        print(number_of_moves, max_moves)
-        print(game_state)
-        print('all_moves', len(all_moves))
+        # print(number_of_moves, max_moves)
+        # print(game_state)
+        # print('all_moves', len(all_moves))
 
         if depth == 0 or not (len(all_moves) > 0) or number_of_moves >= max_moves:
             print(depth == 0, not len(all_moves) > 0, number_of_moves < max_moves)
@@ -162,7 +201,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         if maximizing_player:
             print('\r[MiniMax] Maximizing player')
             best_move, score = self.max(game_state, all_moves, player_number, depth, alpha, beta)
-            print(best_move, score)
         else:
             print('\r[MiniMax] Minimizing player')
             best_move, score = self.min(game_state, all_moves, player_number, depth, alpha, beta)
