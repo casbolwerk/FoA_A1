@@ -98,10 +98,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return taboo_moves
 
     # N.B. This is a very naive implementation.
-    def compute_best_move(self, game_state: GameState) -> None:        
+    def compute_best_move(self, game_state: GameState) -> None:   
         all_moves = self.get_all_moves(game_state)
-
-        move = random.choice(all_moves)
         
         player_number = 1 if len(game_state.moves) % 2 == 0 else 2
         move, _ = self.minimax(game_state, player_number, True, 4, -math.inf, math.inf)
