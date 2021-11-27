@@ -125,7 +125,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             best_value = -math.inf
             best_move = random.choice(all_moves)
             for move in all_moves:
-                new_value = max(best_value, self.alphabeta(game_state, move, False, depth - 1, alpha, beta)[1])
+                #update new gamestate
+                new_gs = deepcopy(game_state)
+                new_gs.board.put(move.i, move.j, move.value)
+                new_gs.moves.append(move)
+                new_value = max(best_value, self.alphabeta(new_gs, move, False, depth - 1, alpha, beta)[1])
                 # compare to beta to check for breakoff
                 if new_value >= beta:
                     break
@@ -142,7 +146,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             best_value = math.inf
             best_move = all_moves[0]
             for move in all_moves:
-                new_value = min(best_value, self.alphabeta(game_state, move, True, depth - 1, alpha, beta)[1])
+                #update new gamestate
+                new_gs = deepcopy(game_state)
+                new_gs.board.put(move.i, move.j, move.value)
+                new_gs.moves.append(move)
+                new_value = min(best_value, self.alphabeta(new_gs, move, True, depth - 1, alpha, beta)[1])
                 # compare the alpha to check for breakoff
                 if new_value <= alpha:
                     break
