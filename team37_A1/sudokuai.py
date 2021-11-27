@@ -21,13 +21,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         super().__init__()
 
     def check_square(self, game_state, i, j, value):
-        """
-        Checks whether a certain value can be inserted in a specific block.
-        @param game_state: The current state of the game
-        @param i: "Row" of the square (note that this is a different interpretation of row, in terms of blocks)
-        @param j: "Column" of the square (note that this is a different interpretation of column, in terms of blocks)
-        @param value: The value that we wish to check for
-        """
         rows = game_state.board.m
         columns = game_state.board.n
         for p in range(((i - 1) * rows), (i * rows)):
@@ -37,26 +30,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return True
 
     def check_column(self, game_state, N, j, value):
-        """"
-        Checks whether a certain value can be inserted in a specific column.
-        @param game_state: The current state of the game
-        @param N: The dimension of the board
-        @param j: The column that we wish to check
-        @param value: The value that we potentially want to insert
-        """
         for p in range(N):
             if game_state.board.get(p, j) == value:
                 return False
         return True
 
     def check_row(self, game_state, N, i, value):
-        """"
-        Checks whether a certain value can be inserted in a specific row.
-        @param game_state: The current state of the game
-        @param N: The dimension of the board
-        @param i: The row that we wish to check
-        @param value: The value that we potentially want to insert
-        """
         for q in range(N):
             if game_state.board.get(i, q) == value:
                 return False
@@ -70,40 +49,18 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     # (DONE) - the value to be entered is not already in the same column
 
     def possible_move(self, game_state, i, j, value, rows, columns):
-        """
-        Checks whether a certain turn is possible, that is:
-         - the position of the board is non-empty
-         - the particular value to be inserted in the empty board position is not in the list of taboo moves
-         - the value to be entered is not already included in the section
-         - the value to be entered is not already in the same row
-         - the value to be entered is not already in the same column
-        @param game_state: The current state of the game
-        @param i: The row in which the agent will possibly insert
-        @param j: The column in which the agent will possibly insert
-        @param value: The value which the agent wishes to insert
-        @param rows: The # of rows (per block)
-        @param columns: The # of columns (per block)
-        @return: Boolean indicating whether the move is possible (=True) or not (=False)
-        """
-        # Compute which of the squares (or blocks) on the board the current position is in:
+        # compute which of the squares on the board the current position is in
         introw = math.ceil((i + 1) / rows)
         intcol = math.ceil((j + 1) / columns)
         N = game_state.board.N
-        if not (self.check_column(game_state, N, j, value)
-                == self.check_row(game_state, N, i, value)
-                == self.check_square(game_state, introw, intcol, value)
-                == True):
+        if not (self.check_column(game_state, N, j, value) == self.check_row(game_state, N, i, value) ==
+                self.check_square(game_state, introw, intcol, value) == True):
             return False
         else:
-            return game_state.board.get(i, j) == SudokuBoard.empty and not \
-                TabooMove(i, j, value) in game_state.taboo_moves
+            return game_state.board.get(i, j) == SudokuBoard.empty and not TabooMove(i, j,
+                                                                                     value) in game_state.taboo_moves
 
     def get_all_moves(self, game_state: GameState):
-        """
-        Gets all the possible moves from the current state of the game.
-        @param game_state: The current state of the game
-        @return: A list with all possible moves
-        """
         N = game_state.board.N
 
         rows = game_state.board.m
@@ -114,12 +71,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         return all_moves
 
-    def update_taboo_moves(self, game_state: GameState):
-        """
-        Updates the list of taboo moves.
-        @param game_state: The current state of the game
-        @return: A list with the taboo moves
-        """
+    def update_taboo_moves(self, game_state:GameState):
         taboo_moves = []
         if len(game_state.moves) > 0:
             last_move = game_state.moves[-1]
@@ -139,7 +91,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 if not self.possible_move(game_state, _i, j, value, rows, columns):
                     taboo_moves.append(taboo_move)
 
-        # Concatenate with the list of moves that were established to be taboo before
         if game_state.taboo_moves:
             taboo_moves = game_state.taboo_moves + taboo_moves
         else:
@@ -147,150 +98,104 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return taboo_moves
 
     # N.B. This is a very naive implementation.
-    def compute_best_move(self, game_state: GameState) -> None:
-        """
-        Computes the best possible move from the given game state
-        @param game_state: The current state of the game
-        @return: The best possible move
-        """
-        # Get all possible moves
+    def compute_best_move(self, game_state: GameState) -> None:   
+        #all_moves = self.get_all_moves(game_state)
+        
+        #while True:
+        #    time.sleep(0.2)
+        #    self.propose_move(random.choice(all_moves))
+        depth = 1
+        while True:
+            self.propose_move(self.alphabeta(game_state, None, True, depth, math.inf, -math.inf)[0])
+            depth = depth + 1
+    
+    #TODO to improve the amount of data passed each time, exchange game_state with a combination of board and all_moves list
+    # update all_moves and board before passing along a new instance for the next call
+    def alphabeta(self, game_state: GameState, last_move: Move, maximizing_player: bool, depth, alpha, beta) -> (Move, int):
+        #get a list of all possible moves using the input gamestate
         all_moves = self.get_all_moves(game_state)
-
-        # Find out whose turn it is
-        player_number = 1 if len(game_state.moves) % 2 == 0 else 2
-
-        # Retrieve the best possible move with the minimax algorithm
-        move, _ = self.minimax(game_state, player_number, True, 4, -math.inf, math.inf)
-
-        print('\r[MiniMax] FINAL MOVE:', move)
-        print(game_state.initial_board)
-        print(game_state.board)
-
-        # Propose the move
-        self.propose_move(move)
-
-
-        # while True:
-        #     time.sleep(0.2)
-
-        #     upd_game_state = game_state
-        #     upd_player_number = 1 if len(upd_game_state.moves) % 2 == 0 else 2
-        #     move, _ = self.minimax(upd_game_state, upd_player_number, True, 8, -math.inf, math.inf)
-        #     self.propose_move(move)
-
-    def max(self, game_state: GameState, all_moves, player_number, depth, alpha, beta) -> (Move, int):
-        """
-        Calculates what the best move is, that is, the move which generates the highest score (value)
-        (since the agent is the maximizing player).
-        @param game_state: The current state of the game
-        @param all_moves: A list with all possible moves
-        @param player_number: A player number, either 1 or 2
-        @param depth: (Remaining) depth of the minimax algorithm
-        @param alpha: Alpha to be used in alpha-beta pruning
-        @param beta: Beta to be used in alpha-beta pruning
-        @return: The best move and score associated with it
-        """
-        max_score = -1*math.inf
-        best_move = all_moves[0]
-        # For every possible move find out what score would be associated with it
-        for move in all_moves:
-            temp_game_state = deepcopy(game_state)
-            i = move.i
-            j = move.j
-            value = move.value
-            curr_board = temp_game_state.board
-            curr_board.put(i, j, value)
-            temp_game_state.board = curr_board
-            temp_game_state.moves.append(move)
-            temp_game_state.taboo_moves = self.update_taboo_moves(game_state)
-
-            curr_score = self.minimax(temp_game_state, player_number, False, depth - 1, alpha, beta)[1]
-
-            print(curr_score)
-            print(move)
-            # If this score is better (higher) than the score associated with the best move we found so far, update it
-            if curr_score > max_score:
-                max_score = curr_score
-                best_move = move
-
-            alpha = max(alpha, curr_score)
-            if beta <= alpha:
-                break
-
-        return best_move, max_score
-
-    def min(self, game_state: GameState, all_moves, player_number, depth, alpha, beta) -> (Move, int):
-        """
-        Calculates what the best move is, that is, the move which generates the lowest score (value)
-        (since the agent is the minimizing player).
-        @param game_state: The current state of the game
-        @param all_moves: A list with all possible moves
-        @param player_number: A player number, either 1 or 2
-        @param depth: (Remaining) depth of the minimax algorithm
-        @param alpha: Alpha to be used in alpha-beta pruning
-        @param beta: Beta to be used in alpha-beta pruning
-        @return: The best move and score associated with it
-        """
-        min_score = math.inf
-        best_move = all_moves[0]
-        print([(move.i, move.j, move.value) for move in all_moves])
-        # For every possible move find out what score would be associated with it
-        for move in all_moves:
-            print(move)
-            temp_game_state = game_state
-            i = move.i
-            j = move.j
-            value = move.value
-            curr_board = temp_game_state.board
-            curr_board.put(i, j, value)
-            temp_game_state.board = curr_board
-            temp_game_state.moves.append(move)
-
-            print(temp_game_state.board)
-            curr_score = self.minimax(temp_game_state, player_number, True, depth - 1, alpha, beta)[1]
-
-            print(curr_score)
-            print(move)
-            # If this score is better (lower) than the score associated with the best move we found so far, update it
-            if curr_score < min_score:
-                min_score = curr_score
-                best_move = move
-
-            beta = min(beta, curr_score)
-            if beta <= alpha:
-                break
-
-        return best_move, min_score
-
-    # Eventual parameters board_copy, depth - 1, alpha, beta, player
-    def minimax(self, game_state: GameState, player_number, maximizing_player: bool, depth, alpha, beta) -> Move:
-        '''
-        Minimax algorithm with alpha-beta pruning.
-        @param game_state: A Sudoku game state, with board and moves
-        @param player_number: A player number, either 1 or 2
-        @param depth: (Remaining) depth of the minimax algorithm
-        @param alpha: The alpha in alpha-beta pruning
-        @param beta: The beta in alpha-beta pruning
-        @return: The move that the current player should play and the associated score
-        '''
-        all_moves = self.get_all_moves(game_state)
-        max_moves = game_state.initial_board.squares.count(SudokuBoard.empty)
-        number_of_moves = len(game_state.moves)
-        # print(number_of_moves, max_moves)
-        # print(game_state)
-        # print('all_moves', len(all_moves))
-
-        if depth == 0 or not (len(all_moves) > 0) or number_of_moves >= max_moves:
-            print(depth == 0, not len(all_moves) > 0, number_of_moves < max_moves)
-            print('\r[MiniMax] Ending minimax..')
-            return None, game_state.scores[player_number-1]
-
+        #is this the final level to consider?
+        if depth == 0 or len(all_moves) == 0:
+            #TODO: heuristic function to evaluate current board (based on last move)
+            #add a case for original lastmove being NULL on first call (in case depth = 0 is set)
+            return None, 0
+        #not the final move, check if maximizing player
         if maximizing_player:
-            print('\r[MiniMax] Maximizing player')
-            best_move, score = self.max(game_state, all_moves, player_number, depth, alpha, beta)
+            #start with -infty
+            best_value = -math.inf
+            best_move = random.choice(all_moves)
+            for move in all_moves:
+                new_value = max(best_value, self.alphabeta(game_state, move, False, depth - 1, alpha, beta)[1])
+                # compare to beta to check for breakoff
+                if new_value >= beta:
+                    break
+                # update alpha if allowed to continue
+                alpha = max(alpha, new_value)
+                # update best move and global value to the new move as long as it is at least as good as the previous best
+                if new_value >= best_value:
+                    best_value = new_value
+                    best_move = move
+            #after the loop, return the best move and its associated value
+            return best_move, best_value
         else:
-            print('\r[MiniMax] Minimizing player')
-            best_move, score = self.min(game_state, all_moves, player_number, depth, alpha, beta)
-
-        return best_move, score
-
+            # minimizing player start with infty
+            best_value = math.inf
+            best_move = all_moves[0]
+            for move in all_moves:
+                new_value = min(best_value, self.alphabeta(game_state, move, True, depth - 1, alpha, beta)[1])
+                # compare the alpha to check for breakoff
+                if new_value <= alpha:
+                    break
+                #update beta if allowed to continue
+                beta = max(beta, new_value)
+                #update best move and global value to the new move as long as it is at least as good as the previous best
+                if new_value <= best_value:
+                    best_value = new_value
+                    best_move = move
+            #after the loop, return the best move and its associated value
+            return best_move, best_value
+            
+    def evaluate_board(self, board: SudokuBoard, last_move: Move) -> int:
+        #check whether the board is the original board and no move was performed
+        if last_move == None:
+            #evaluate naively whether the state of the board is good by counting a score based on the number of filled in slots per section on the board
+            rows_count = board.n
+            cols_count = board.m
+            total_score = 0
+            for r in range(1, rows_count+1):
+                for c in range(1, cols_count+1):
+                    #we're at some section of the board positioned as (r,c) in the bottom right corner
+                    score_section = 0
+                    for p in range(((r - 1) * rows_count), (r * rows_count)):
+                        for q in range(((c - 1) * cols_count), (c * cols_count)):
+                            #we now have a singular number in the section denoted by (r,c) in position (p, q) of the board
+                            if not (board.get(p, q) == SudokuBoard.empty):
+                                score_section = score_section + 1
+                    total_score = total_score + score_section
+            return total_score
+        else:
+            #a move was made
+            #TODO implement more defined heuristic based on recent move
+            
+            
+            #TEMPORARY:
+            rows_count = board.n
+            cols_count = board.m
+            total_score = 0
+            for r in range(1, rows_count+1):
+                for c in range(1, cols_count+1):
+                    #were at some section of the board positioned as (r,c) in the bottom right corner
+                    score_section = 0
+                    for p in range(((r - 1) * rows_count), (r * rows_count)):
+                        for q in range(((c - 1) * cols_count), (c * cols_count)):
+                            #we now have a singular number in the section denoted by (r,c) in position (p, q) of the board
+                            if not (board.get(p, q) == SudokuBoard.empty):
+                                score_section = score_section + 1
+                    total_score = total_score + score_section
+            return total_score
+        return 0
+        
+        
+        
+        
+        
