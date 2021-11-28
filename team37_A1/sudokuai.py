@@ -104,10 +104,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #while True:
         #    time.sleep(0.2)
         #    self.propose_move(random.choice(all_moves))
-        depth = 1
-        while True:
-            self.propose_move(self.alphabeta(game_state, None, True, depth, math.inf, -math.inf)[0])
-            depth = depth + 1
+        depth = 3
+        # while True:
+        self.propose_move(self.alphabeta(game_state, None, True, depth, -math.inf, math.inf)[0])
     
     #TODO to improve the amount of data passed each time, exchange game_state with a combination of board and all_moves list
     # update all_moves and board before passing along a new instance for the next call
@@ -116,22 +115,29 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         all_moves = self.get_all_moves(game_state)
         #is this the final level to consider?
         if depth == 0 or len(all_moves) == 0:
+            print('stopping minmax')
             #TODO: heuristic function to evaluate current board (based on last move)
             #add a case for original lastmove being NULL on first call (in case depth = 0 is set)
+            return None, self.evaluate_board(game_state, last_move)
             return None, 0
         #not the final move, check if maximizing player
         if maximizing_player:
+            print('now maximizing')
             #start with -infty
             best_value = -math.inf
             best_move = random.choice(all_moves)
             for move in all_moves:
+                print('maximizing for move ', move, 'at depth', depth)
                 #update new gamestate
                 new_gs = deepcopy(game_state)
                 new_gs.board.put(move.i, move.j, move.value)
                 new_gs.moves.append(move)
+                new_gs.taboo_moves = self.update_taboo_moves(new_gs)
                 new_value = max(best_value, self.alphabeta(new_gs, move, False, depth - 1, alpha, beta)[1])
+                print('NEW VALUE ', new_value)
                 # compare to beta to check for breakoff
                 if new_value >= beta:
+                    print('BREAK')
                     break
                 # update alpha if allowed to continue
                 alpha = max(alpha, new_value)
@@ -142,20 +148,24 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             #after the loop, return the best move and its associated value
             return best_move, best_value
         else:
+            print('now minimizing')
             # minimizing player start with infty
             best_value = math.inf
             best_move = all_moves[0]
             for move in all_moves:
+                print('minimizing for move ', move, 'at depth', depth)
                 #update new gamestate
                 new_gs = deepcopy(game_state)
                 new_gs.board.put(move.i, move.j, move.value)
                 new_gs.moves.append(move)
+                new_gs.taboo_moves = self.update_taboo_moves(new_gs)
                 new_value = min(best_value, self.alphabeta(new_gs, move, True, depth - 1, alpha, beta)[1])
                 # compare the alpha to check for breakoff
                 if new_value <= alpha:
+                    print('BREAK')
                     break
                 #update beta if allowed to continue
-                beta = max(beta, new_value)
+                beta = min(beta, new_value)
                 #update best move and global value to the new move as long as it is at least as good as the previous best
                 if new_value <= best_value:
                     best_value = new_value
@@ -163,8 +173,27 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             #after the loop, return the best move and its associated value
             return best_move, best_value
             
-    def evaluate_board(self, board: SudokuBoard, last_move: Move) -> int:
-        #check whether the board is the original board and no move was performed
+    def evaluate_board(self, game_state: GameState, last_move: Move) -> int:
+        i, j, value = last_move.i, last_move.j, last_move.value
+        print(game_state.board.__str__)
+        print('evaluating for move ', last_move)
+        rows = game_state.board.m
+        columns = game_state.board.n
+        introw = math.ceil((i + 1) / rows)
+        intcol = math.ceil((j + 1) / columns)
+        N = game_state.board.N
+
+        col_score = self.check_column(game_state, N, j, value)
+        row_score = self.check_row(game_state, N, i, value)
+        square_score = self.check_square(game_state, introw, intcol, value)
+
+        move_score = [col_score, row_score, square_score]
+        print('evaluation is', move_score)
+        move_score = move_score.count(False)
+
+        return move_score
+
+    def evaluate_board_naive(self, board: SudokuBoard, last_move: Move) -> int:
         if last_move == None:
             #evaluate naively whether the state of the board is good by counting a score based on the number of filled in slots per section on the board
             rows_count = board.n
