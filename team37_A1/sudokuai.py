@@ -21,6 +21,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         super().__init__()
 
     def check_square(self, game_state, i, j, value):
+        """
+        Checks whether a certain value can be inserted in a specific block.
+        @param game_state: The current state of the game
+        @param i: "Row" of the square (note that this is a different interpretation of row, in terms of blocks)
+        @param j: "Column" of the square (note that this is a different interpretation of column, in terms of blocks)
+        @param value: The value that we wish to check for
+        """
         rows = game_state.board.m
         columns = game_state.board.n
         for p in range(((i - 1) * rows), (i * rows)):
@@ -30,12 +37,26 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return True
 
     def check_column(self, game_state, N, j, value):
+        """"
+        Checks whether a certain value can be inserted in a specific column.
+        @param game_state: The current state of the game
+        @param N: The dimension of the board
+        @param j: The column that we wish to check
+        @param value: The value that we potentially want to insert
+        """
         for p in range(N):
             if game_state.board.get(p, j) == value:
                 return False
         return True
 
     def check_row(self, game_state, N, i, value):
+        """"
+        Checks whether a certain value can be inserted in a specific row.
+        @param game_state: The current state of the game
+        @param N: The dimension of the board
+        @param i: The row that we wish to check
+        @param value: The value that we potentially want to insert
+        """
         for q in range(N):
             if game_state.board.get(i, q) == value:
                 return False
@@ -49,7 +70,22 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     # (DONE) - the value to be entered is not already in the same column
 
     def possible_move(self, game_state, i, j, value, rows, columns):
-        # compute which of the squares on the board the current position is in
+        """
+        Checks whether a certain turn is possible, that is:
+         - the position of the board is non-empty
+         - the particular value to be inserted in the empty board position is not in the list of taboo moves
+         - the value to be entered is not already included in the section
+         - the value to be entered is not already in the same row
+         - the value to be entered is not already in the same column
+        @param game_state: The current state of the game
+        @param i: The row in which the agent will possibly insert
+        @param j: The column in which the agent will possibly insert
+        @param value: The value which the agent wishes to insert
+        @param rows: The # of rows (per block)
+        @param columns: The # of columns (per block)
+        @return: Boolean indicating whether the move is possible (=True) or not (=False)
+        """
+        # Compute which of the squares (or blocks) on the board the current position is in:
         introw = math.ceil((i + 1) / rows)
         intcol = math.ceil((j + 1) / columns)
         N = game_state.board.N
@@ -61,6 +97,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                                                                                      value) in game_state.taboo_moves
 
     def get_all_moves(self, game_state: GameState):
+        """
+        Gets all the possible moves from the current state of the game.
+        @param game_state: The current state of the game
+        @return: A list with all possible moves
+        """
         N = game_state.board.N
 
         rows = game_state.board.m
@@ -72,6 +113,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return all_moves
 
     def update_taboo_moves(self, game_state:GameState):
+        """
+        Updates the list of taboo moves.
+        @param game_state: The current state of the game
+        @return: A list with the taboo moves
+        """
         taboo_moves = []
         if len(game_state.moves) > 0:
             last_move = game_state.moves[-1]
@@ -91,6 +137,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 if not self.possible_move(game_state, _i, j, value, rows, columns):
                     taboo_moves.append(taboo_move)
 
+        # Concatenate with the list of moves that were established to be taboo before
         if game_state.taboo_moves:
             taboo_moves = game_state.taboo_moves + taboo_moves
         else:
@@ -98,16 +145,16 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return taboo_moves
 
     # N.B. This is a very naive implementation.
-    def compute_best_move(self, game_state: GameState) -> None:   
+    def compute_best_move(self, game_state: GameState) -> None:
         #all_moves = self.get_all_moves(game_state)
-        
+
         #while True:
         #    time.sleep(0.2)
         #    self.propose_move(random.choice(all_moves))
         depth = 3
         # while True:
         self.propose_move(self.alphabeta(game_state, None, True, depth, -math.inf, math.inf)[0])
-    
+
     #TODO to improve the amount of data passed each time, exchange game_state with a combination of board and all_moves list
     # update all_moves and board before passing along a new instance for the next call
     def alphabeta(self, game_state: GameState, last_move: Move, maximizing_player: bool, depth, alpha, beta) -> (Move, int):
@@ -172,7 +219,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     best_move = move
             #after the loop, return the best move and its associated value
             return best_move, best_value
-            
+
     def evaluate_board(self, game_state: GameState, last_move: Move) -> int:
         i, j, value = last_move.i, last_move.j, last_move.value
         print(game_state.board.__str__)
@@ -213,8 +260,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         else:
             #a move was made
             #TODO implement more defined heuristic based on recent move
-            
-            
+
+
             #TEMPORARY:
             rows_count = board.n
             cols_count = board.m
@@ -231,8 +278,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     total_score = total_score + score_section
             return total_score
         return 0
-        
-        
-        
-        
-        
+
+
+
+
