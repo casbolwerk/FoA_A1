@@ -123,12 +123,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #while True:
         #    time.sleep(0.2)
         #    self.propose_move(random.choice(all_moves))
-        depth = 1
+        depth = 0
         meta = Metadata(nullMove, proposal, -math.inf)
         while True:
 
             depth = depth + 1
-
         #initiate a metadata to be sent with the original call, consisting of nullmove, the picked "fallback" move and
         #  a score of -inf to ensure any computed move is picked during computation to replace it
         #  Note: as we do not know if this move is an improvement over the random move, this essentially serves as another random move
@@ -146,7 +145,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         all_moves = self.get_all_moves(game_state)
         #is this the final level to consider?
         if depth == 0 or len(all_moves) == 0:
-            print('stopping minmax')
+            #print('stopping minmax')
             #TODO: heuristic function to evaluate current board (based on last move)
             #add a case for original lastmove being NULL on first call (in case depth = 0 is set)
             return nullMove, diff_score(game_state.scores), metaA
@@ -159,7 +158,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #     all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
         # #not the final move, check if maximizing player
         if maximizing_player:
-            print('now maximizing')
+            #print('now maximizing')
             #start with -infty
             best_value = -math.inf
             best_move = random.choice(all_moves)
@@ -183,19 +182,19 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 alpha = max(alpha, new_value)
                 # compare whether the new found move is an improvement over the overall computed proposal
                 if new_value > meta.best_score:
-                    print("Update proposal and metadata")
+                    #print("Update proposal and metadata")
                     metaA.set(meta.last_move, move, new_value)
                     # if it is, then submit it as the new proposal
                     self.propose_move(move)
 
                 # compare to beta to check for breakoff
                 if beta <= alpha:
-                    print('BETA BREAK', beta, '<=', alpha)
+                    #print('BETA BREAK', beta, '<=', alpha)
                     break
             #after the loop, return the best move and its associated value
             return best_move, best_value, metaA
         else:
-            print('now minimizing')
+            #print('now minimizing')
             # minimizing player start with infty
             best_value = math.inf
             best_move = all_moves[0]
@@ -217,7 +216,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 beta = min(beta, new_value)
                 # compare the alpha to check for breakoff
                 if beta <= alpha:
-                    print('ALPHA BREAK', beta, '<=', alpha)
+                    #print('ALPHA BREAK', beta, '<=', alpha)
                     break
                 #update best move and global value to the new move as long as it is at least as good as the previous best
             #after the loop, return the best move and its associated value
