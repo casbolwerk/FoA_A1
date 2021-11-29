@@ -123,11 +123,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #while True:
         #    time.sleep(0.2)
         #    self.propose_move(random.choice(all_moves))
-        depth = 0
+        depth = 1
         meta = Metadata(nullMove, proposal, -math.inf)
         while True:
-
-            depth = depth + 1
         #initiate a metadata to be sent with the original call, consisting of nullmove, the picked "fallback" move and
         #  a score of -inf to ensure any computed move is picked during computation to replace it
         #  Note: as we do not know if this move is an improvement over the random move, this essentially serves as another random move
@@ -135,7 +133,16 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             game_state.initial_board = game_state.board
             best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf)
             self.propose_move(best_move)
-    
+
+            depth = depth + 1
+
+    def hasEmpty(self, board: SudokuBoard) -> bool:
+        for i in range(board.N):
+            for j in range(board.N):
+                if board.get(i, j) is SudokuBoard.empty:
+                    return True
+        return False
+
     #TODO to improve the amount of data passed each time, exchange game_state with a combination of board and all_moves list
     # update all_moves and board before passing along a new instance for the next call
     def alphabeta(self, game_state: GameState, meta: Metadata, maximizing_player: bool, depth, alpha, beta) -> (Move, int, Metadata):
@@ -145,8 +152,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #is this the final level to consider?
         if depth == 0 or len(all_moves) == 0:
             #print('stopping minmax')
+            #check if the game didnt deadlock
+            if len(all_moves) == 0 and self.hasEmpty(game_state.board):
+                return nullMove, -math.inf, meta
             #TODO: heuristic function to evaluate current board (based on last move)
-            #add a case for original lastmove being NULL on first call (in case depth = 0 is set)
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
             return nullMove, diff_score(game_state.scores), meta
             #return None, 0
@@ -173,20 +182,23 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
                 meta.setLast(move)
                 new_value = max(best_value, self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1])
+                #print("MAX:  Move ", move.__str__(), " has value ", new_value, " at height ", depth)
                 #print('NEW VALUE ', new_value)
                 # update best move and global value to the new move as long as it is at least as good as the previous best
                 if new_value > best_value:
+                    #print("We found a better value with old: ", best_value, " and new: ", new_value)
                     #print('UPDATING MAX BEST MOVE', best_value, new_value)
                     best_value = new_value
                     best_move = move
                 # update alpha if allowed to continue
                 alpha = max(alpha, new_value)
                 # compare whether the new found move is an improvement over the overall computed proposal
-                if new_value > meta.best_score:
-                    #print("Update proposal and metadata")
-                    meta.set(meta.last_move, move, new_value)
-                    # if it is, then submit it as the new proposal
-                    self.propose_move(move)
+                # if new_value > meta.best_score:
+                #     #print("Update proposal and metadata")
+                #     #print("New proposal inserted", meta.best_move.__str__(), meta.best_score, " replaced with ", move.__str__(), new_value)
+                #     meta.set(meta.last_move, move, new_value)
+                #     # if it is, then submit it as the new proposal
+                #     self.propose_move(move)
 
                 # compare to beta to check for breakoff
                 if beta <= alpha:
@@ -198,7 +210,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             #print('now minimizing')
             # minimizing player start with infty
             best_value = math.inf
-            best_move = all_moves[0]
+            best_move = random.choice(all_moves)
             for move in all_moves:
                 #print('minimizing for move ', move, 'at depth', depth)
                 #update new gamestate
@@ -210,6 +222,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
                 meta.setLast(move)
                 new_value = min(best_value, self.alphabeta(new_gs, meta, True, depth - 1, alpha, beta)[1])
+                #print("MIN:   Move ", move.__str__(), " has value ", new_value, " at height ", depth)
                 if new_value < best_value:
                     #print('UPDATING MIN BEST MOVE', best_value, new_value)
                     best_value = new_value
@@ -220,7 +233,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 if beta <= alpha:
                     #print('ALPHA BREAK', beta, '<=', alpha)
                     break
-                #update best move and global value to the new move as long as it is at least as good as the previous best
             #after the loop, return the best move and its associated value
             return best_move, best_value, meta
 
@@ -228,90 +240,50 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def evaluate_state(game_state: GameState, last_move: Move) -> int:
         p1_score = game_state.scores[0]
         p2_score = game_state.scores[1] # odd movecount/turns
+        temp_score = game_state.scores
+
         difference = diff_score(game_state.scores) #how much p1 is ahead of p2 (negative implies behind)
 
         curr_player_number = 1 if len(game_state.moves) % 2 == 0 else 2
-        # this counts if the move puts in the second to last value in a row, column or region
-        # implying the opponent can immediately score it at least one of these (so the score advantage will be reduced by at least as many points as can now be scored)
         possible_opp_gain = immediate_gain(game_state.board, last_move)
 
-        score_advantage = 100*difference
-        #score_advantage = 10 * (difference - possible_opp_gain)
-        score_advantage = score_advantage + 50*possible_opp_gain if curr_player_number == 2 else score_advantage - 50*possible_opp_gain
+        # score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
 
-        # value a move more if it prepares a section to N-2 completion
-        if prepares_sections(game_state.board, last_move) > 0:
-            score_advantage = score_advantage + 10
-
-        # value a move more if it brings any of the sections (col, row, region) closer to N-2 prepared
-        # prioritize filling up the most filled, non-prepared section as much as possible
-        fullest_count = is_closest(game_state.board, last_move)
-        score_advantage = fullest_count.count(True) * 2 #valued at 0, 2, 4 or 6
-
-
-        # new_gs.scores[player_number - 1] = new_gs.scores[player_number - 1] + move_score(new_gs.board, move)
-
-
-        # i, j, value = last_move.i, last_move.j, last_move.value
-        # print(game_state.board.__str__)
-        # print('evaluating for move ', last_move)
-        # rows = game_state.board.m
-        # columns = game_state.board.n
-        # introw = math.ceil((i + 1) / rows)
-        # intcol = math.ceil((j + 1) / columns)
-        # N = game_state.board.N
-        #
-
-        # col_score = self.check_column(game_state, N, j, value)
-        # row_score = self.check_row(game_state, N, i, value)
-        # square_score = self.check_square(game_state, introw, intcol, value)
-        #
-        # move_score = [col_score, row_score, square_score]
-        # print('evaluation is', move_score)
-        # move_score = move_score.count(False)
-
-        return score_advantage
-
-    def evaluate_board_naive(self, board: SudokuBoard, last_move: Move) -> int:
-        nullMove = Move(-1, -1, -1)
-        if last_move == nullMove:
-            #evaluate naively whether the state of the board is good by counting a score based on the number of filled in slots per section on the board
-            rows_count = board.n
-            cols_count = board.m
-            total_score = 0
-            for r in range(1, rows_count+1):
-                for c in range(1, cols_count+1):
-                    #we're at some section of the board positioned as (r,c) in the bottom right corner
-                    score_section = 0
-                    for p in range(((r - 1) * rows_count), (r * rows_count)):
-                        for q in range(((c - 1) * cols_count), (c * cols_count)):
-                            #we now have a singular number in the section denoted by (r,c) in position (p, q) of the board
-                            if not (board.get(p, q) == SudokuBoard.empty):
-                                score_section = score_section + 1
-                    total_score = total_score + score_section
-            return total_score
+        # if curr_player is 1 then player 2 scores the "Easily obtained" points, else player 1 scores them
+        score_advantage = difference
+        def hasEmpty(board: SudokuBoard) -> bool:
+            for i in range(board.N):
+                for j in range(board.N):
+                    if board.get(i, j) is SudokuBoard.empty:
+                        return True
+            return False
+        if not hasEmpty(game_state.board):
+            #the game has ended with the last turn
+            #check whether the resulting score is winning
+            winning = difference >= 0 if curr_player_number == 1 else difference < 0
+            if winning:
+                score_advantage = score_advantage + 10 # if curr_player_number == 1 else score_advantage - 100
         else:
-            #a move was made
-            #TODO implement more defined heuristic based on recent move
-            
-            
-            #TEMPORARY:
-            rows_count = board.n
-            cols_count = board.m
-            total_score = 0
-            for r in range(1, rows_count+1):
-                for c in range(1, cols_count+1):
-                    #were at some section of the board positioned as (r,c) in the bottom right corner
-                    score_section = 0
-                    for p in range(((r - 1) * rows_count), (r * rows_count)):
-                        for q in range(((c - 1) * cols_count), (c * cols_count)):
-                            #we now have a singular number in the section denoted by (r,c) in position (p, q) of the board
-                            if not (board.get(p, q) == SudokuBoard.empty):
-                                score_section = score_section + 1
-                    total_score = total_score + score_section
-            return total_score
-        return 0
-        
+            score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
+        # this counts if the move puts in the second to last value in a row, column or region
+        # implying the opponent can immediately score it at least one of these (so the score advantage will be reduced by at least as many points as can now be scored)
+        #score_advantage = 2*move_score(game_state.board, last_move) - possible_opp_gain + difference
+        #score_advantage = 10 * (difference - possible_opp_gain)
+        #print("Opponent can score: ", possible_opp_gain, " - the current score difference: ", difference, " - considering player number: ", curr_player_number)
+        #score_advantage = 100 * (difference - possible_opp_gain) #if curr_player_number == 2 else 100 * (difference - possible_opp_gain)
+        #print("So we get a score advantage of: ", score_advantage)
+        # # value a move more if it prepares a section to N-2 completion
+        # if prepares_sections(game_state.board, last_move) > 0:
+        #      score_advantage = score_advantage + 20
+        #
+        # # value a move more if it brings any of the sections (col, row, region) closer to N-2 prepared
+        # # prioritize filling up the most filled, non-prepared section as much as possible
+        # fullest_count = is_closest(game_state.board, last_move)
+        # score_advantage = fullest_count.count(True) * 5 #valued at 0, 5, 10, 15
+
+        #return score_advantage
+        #NAIVE:
+        return score_advantage
         
         
         

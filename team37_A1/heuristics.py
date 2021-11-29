@@ -46,7 +46,7 @@ def move_score(board: SudokuBoard, move: Move):
 
     return scores[move_score]
 
-    #return the number of empty squares in the row
+    #return the number of empty squares in the row including the most recent move
 def leaves_row(board, N, i) -> int:
     count = 0
     for q in range(N):
@@ -54,7 +54,7 @@ def leaves_row(board, N, i) -> int:
             count = count + 1
     return count
 
-    #return the number of empty squares in the column
+    #return the number of empty squares in the column including the most recent move
 def leaves_col(board, N, j) -> int:
     count = 0
     for p in range(N):
@@ -62,7 +62,7 @@ def leaves_col(board, N, j) -> int:
             count = count + 1
     return count
 
-    #return the number of empty squares in the region
+    #return the number of empty squares in the region including the most recent move
 def leaves_square(board, i, j) -> int:
     count = 0
     rows = board.m
