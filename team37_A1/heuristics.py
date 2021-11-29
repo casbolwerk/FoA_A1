@@ -26,15 +26,20 @@ def completes_col(board, N, j):
 def completes_row(board, N, i):
     for q in range(N):
         if board.get(i, q) is SudokuBoard.empty:
-            print('row', i, q)
             return False
     return True
 
+
 def move_score(board: SudokuBoard, move: Move):
+    '''
+    Calculate the score that a move would give to the player
+    @param board: the current board
+    @param move: the latest move
+    @return: the score that a move gives
+    '''
     i, j = move.i, move.j
     N = board.N
     completes = [completes_square(board, i, j), completes_col(board, N, j), completes_row(board, N, i)]
-    print(completes)
 
     move_score = completes.count(True)
     scores = [0,1,3,7]
