@@ -11,6 +11,7 @@ from copy import deepcopy
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 from team37_A1.heuristics import move_score, diff_score
+from team37_A1.metadata import Metadata
 
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -100,13 +101,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
     @staticmethod
     def check_random_move(game_state: GameState, all_moves: [Move]):
-        print('IN RANDOM MOVE')
+        #print('IN RANDOM MOVE')
         depth_1_scores = []
         for move in all_moves:
             new_gs = deepcopy(game_state)
             new_gs.board.put(move.i, move.j, move.value)
             depth_1_scores.append(move_score(new_gs.board, move))
-        print('depth_1_scores', depth_1_scores)
+        #print('depth_1_scores', depth_1_scores)
         return depth_1_scores
 
     def compute_best_move(self, game_state: GameState) -> None:
@@ -114,23 +115,33 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # this is needed in case our minimax does not finish at least one evaluation to ensure we do not hit a "no move selected"
         #    as this would instantly lose us the game
         all_moves = self.get_all_moves(game_state)
-        self.propose_move(random.choice(all_moves))
+        proposal = random.choice(all_moves)
+        self.propose_move(proposal)
 
         #introducing a null move to allow for initial call
         nullMove = Move(-1, -1, -1)
         #while True:
         #    time.sleep(0.2)
         #    self.propose_move(random.choice(all_moves))
-        depth = 3
-        # while True:
-        #    depth = depth + 1
-        game_state.initial_board = game_state.board
-        self.propose_move(self.alphabeta(game_state, nullMove, True, depth, -math.inf, math.inf)[0])
+        depth = 1
+        meta = Metadata(nullMove, proposal, -math.inf)
+        while True:
+
+            depth = depth + 1
+
+        #initiate a metadata to be sent with the original call, consisting of nullmove, the picked "fallback" move and
+        #  a score of -inf to ensure any computed move is picked during computation to replace it
+        #  Note: as we do not know if this move is an improvement over the random move, this essentially serves as another random move
+        #         but it ensures once again that we do have a selected move, which now is evaluated and to be compared with others
+            game_state.initial_board = game_state.board
+            best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf)
+            self.propose_move(best_move)
     
     #TODO to improve the amount of data passed each time, exchange game_state with a combination of board and all_moves list
     # update all_moves and board before passing along a new instance for the next call
-    def alphabeta(self, game_state: GameState, last_move: Move, maximizing_player: bool, depth, alpha, beta) -> (Move, int):
+    def alphabeta(self, game_state: GameState, meta: Metadata, maximizing_player: bool, depth, alpha, beta) -> (Move, int, Metadata):
         nullMove = Move(-1, -1, -1)
+        metaA = deepcopy(meta)
         #get a list of all possible moves using the input gamestate
         all_moves = self.get_all_moves(game_state)
         #is this the final level to consider?
@@ -138,22 +149,22 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             print('stopping minmax')
             #TODO: heuristic function to evaluate current board (based on last move)
             #add a case for original lastmove being NULL on first call (in case depth = 0 is set)
-            return nullMove, diff_score(game_state.scores)
+            return nullMove, diff_score(game_state.scores), metaA
             #return None, 0
         depth_1_scores = self.check_random_move(game_state, all_moves)
-        if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
-            print('do random move')
-            return random.choice(all_moves), 0
-        else:
-            all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
-        #not the final move, check if maximizing player
+        # if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
+        #     #print('do random move')
+        #     return random.choice(all_moves), 0
+        # else:
+        #     all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
+        # #not the final move, check if maximizing player
         if maximizing_player:
             print('now maximizing')
             #start with -infty
             best_value = -math.inf
             best_move = random.choice(all_moves)
             for move in all_moves:
-                print('maximizing for move ', move, 'at depth', depth)
+                #print('maximizing for move ', move, 'at depth', depth)
                 #update new gamestate
                 new_gs = deepcopy(game_state)
                 new_gs.board.put(move.i, move.j, move.value)
@@ -161,28 +172,35 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.taboo_moves = self.update_taboo_moves(new_gs)
                 player_number = 1 if len(game_state.moves) % 2 == 0 else 2
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
-                new_value = max(best_value, self.alphabeta(new_gs, move, False, depth - 1, alpha, beta)[1])
-                print('NEW VALUE ', new_value)
+                new_value = max(best_value, self.alphabeta(new_gs, metaA, False, depth - 1, alpha, beta)[1])
+                #print('NEW VALUE ', new_value)
                 # update best move and global value to the new move as long as it is at least as good as the previous best
                 if new_value > best_value:
-                    print('UPDATING MAX BEST MOVE', best_value, new_value)
+                    #print('UPDATING MAX BEST MOVE', best_value, new_value)
                     best_value = new_value
                     best_move = move
                 # update alpha if allowed to continue
                 alpha = max(alpha, new_value)
+                # compare whether the new found move is an improvement over the overall computed proposal
+                if new_value > meta.best_score:
+                    print("Update proposal and metadata")
+                    metaA.set(meta.last_move, move, new_value)
+                    # if it is, then submit it as the new proposal
+                    self.propose_move(move)
+
                 # compare to beta to check for breakoff
                 if beta <= alpha:
                     print('BETA BREAK', beta, '<=', alpha)
                     break
             #after the loop, return the best move and its associated value
-            return best_move, best_value
+            return best_move, best_value, metaA
         else:
             print('now minimizing')
             # minimizing player start with infty
             best_value = math.inf
             best_move = all_moves[0]
             for move in all_moves:
-                print('minimizing for move ', move, 'at depth', depth)
+                #print('minimizing for move ', move, 'at depth', depth)
                 #update new gamestate
                 new_gs = deepcopy(game_state)
                 new_gs.board.put(move.i, move.j, move.value)
@@ -190,9 +208,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.taboo_moves = self.update_taboo_moves(new_gs)
                 player_number = 1 if len(game_state.moves) % 2 == 0 else 2
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
-                new_value = min(best_value, self.alphabeta(new_gs, move, True, depth - 1, alpha, beta)[1])
+                new_value = min(best_value, self.alphabeta(new_gs, metaA, True, depth - 1, alpha, beta)[1])
                 if new_value < best_value:
-                    print('UPDATING MIN BEST MOVE', best_value, new_value)
+                    #print('UPDATING MIN BEST MOVE', best_value, new_value)
                     best_value = new_value
                     best_move = move
                 #update beta if allowed to continue
@@ -203,7 +221,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     break
                 #update best move and global value to the new move as long as it is at least as good as the previous best
             #after the loop, return the best move and its associated value
-            return best_move, best_value
+            return best_move, best_value, metaA
             
     def evaluate_board(self, game_state: GameState, last_move: Move) -> int:
         i, j, value = last_move.i, last_move.j, last_move.value

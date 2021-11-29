@@ -43,7 +43,7 @@ def move_score(board: SudokuBoard, move: Move):
 
     move_score = completes.count(True)
     scores = [0,1,3,7]
-    print('SCORE ADDED', scores[move_score])
+    #print('SCORE ADDED', scores[move_score])
 
     return scores[move_score]
 
