@@ -242,6 +242,18 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         return move_score
 
+    def track_danger(self, game_state: GameState, last_move: Move) -> int:
+        """ Return the amount of points the opponent is able to immediately gain from the current board state
+        @param game_state:
+        @param last_move:
+        @return:
+        """
+        board = game_state.board
+        # check whether the row, column and region the last_move is in can now give points
+
+
+
+
     def evaluate_board_naive(self, board: SudokuBoard, last_move: Move) -> int:
         nullMove = Move(-1, -1, -1)
         if last_move == nullMove:
