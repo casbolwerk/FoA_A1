@@ -109,14 +109,18 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         print('depth_1_scores', depth_1_scores)
         return depth_1_scores
 
-    def compute_best_move(self, game_state: GameState) -> None:   
-        #all_moves = self.get_all_moves(game_state)
-        
+    def compute_best_move(self, game_state: GameState) -> None:
+        # initiate a random valid move, so some move is always returned
+        # this is needed in case our minimax does not finish at least one evaluation to ensure we do not hit a "no move selected"
+        #    as this would instantly lose us the game
+        all_moves = self.get_all_moves(game_state)
+        self.propose_move(random.choice(all_moves))
         #while True:
         #    time.sleep(0.2)
         #    self.propose_move(random.choice(all_moves))
         depth = 3
         # while True:
+        #    depth = depth + 1
         game_state.initial_board = game_state.board
         self.propose_move(self.alphabeta(game_state, None, True, depth, -math.inf, math.inf)[0])
     
