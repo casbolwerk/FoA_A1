@@ -115,6 +115,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #    as this would instantly lose us the game
         all_moves = self.get_all_moves(game_state)
         self.propose_move(random.choice(all_moves))
+
+        #introducing a null move to allow for initial call
+        nullMove = Move(-1, -1, -1)
         #while True:
         #    time.sleep(0.2)
         #    self.propose_move(random.choice(all_moves))
@@ -122,11 +125,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # while True:
         #    depth = depth + 1
         game_state.initial_board = game_state.board
-        self.propose_move(self.alphabeta(game_state, None, True, depth, -math.inf, math.inf)[0])
+        self.propose_move(self.alphabeta(game_state, nullMove, True, depth, -math.inf, math.inf)[0])
     
     #TODO to improve the amount of data passed each time, exchange game_state with a combination of board and all_moves list
     # update all_moves and board before passing along a new instance for the next call
     def alphabeta(self, game_state: GameState, last_move: Move, maximizing_player: bool, depth, alpha, beta) -> (Move, int):
+        nullMove = Move(-1, -1, -1)
         #get a list of all possible moves using the input gamestate
         all_moves = self.get_all_moves(game_state)
         #is this the final level to consider?
@@ -134,8 +138,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             print('stopping minmax')
             #TODO: heuristic function to evaluate current board (based on last move)
             #add a case for original lastmove being NULL on first call (in case depth = 0 is set)
-            return None, diff_score(game_state.scores)
-            return None, 0
+            return nullMove, diff_score(game_state.scores)
+            #return None, 0
         depth_1_scores = self.check_random_move(game_state, all_moves)
         if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
             print('do random move')
@@ -222,7 +226,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return move_score
 
     def evaluate_board_naive(self, board: SudokuBoard, last_move: Move) -> int:
-        if last_move == None:
+        nullMove = Move(-1, -1, -1)
+        if last_move == nullMove:
             #evaluate naively whether the state of the board is good by counting a score based on the number of filled in slots per section on the board
             rows_count = board.n
             cols_count = board.m
