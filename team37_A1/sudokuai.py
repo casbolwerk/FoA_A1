@@ -7,7 +7,6 @@ import time
 import math
 from copy import deepcopy
 
-
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 
@@ -107,12 +106,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         rows = game_state.board.m
         columns = game_state.board.n
 
-        all_moves = [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if
+        all_moves = [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N + 1) if
                      self.possible_move(game_state, i, j, value, rows, columns)]
 
         return all_moves
 
-    def update_taboo_moves(self, game_state:GameState):
+    def update_taboo_moves(self, game_state: GameState):
         """
         Updates the list of taboo moves.
         @param game_state: The current state of the game
@@ -146,36 +145,40 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
     # N.B. This is a very naive implementation.
     def compute_best_move(self, game_state: GameState) -> None:
-        #all_moves = self.get_all_moves(game_state)
+        # all_moves = self.get_all_moves(game_state)
 
-        #while True:
+        # while True:
         #    time.sleep(0.2)
         #    self.propose_move(random.choice(all_moves))
         depth = 3
         # while True:
         self.propose_move(self.alphabeta(game_state, None, True, depth, -math.inf, math.inf)[0])
 
-    #TODO to improve the amount of data passed each time, exchange game_state with a combination of board and all_moves list
+    # TODO to improve the amount of data passed each time, exchange game_state with a combination of board and all_moves list
     # update all_moves and board before passing along a new instance for the next call
-    def alphabeta(self, game_state: GameState, last_move: Move, maximizing_player: bool, depth, alpha, beta) -> (Move, int):
-        #get a list of all possible moves using the input gamestate
+    def alphabeta(self, game_state: GameState, last_move: Move, maximizing_player: bool, depth, alpha, beta) -> (
+    Move, int):
+        # get a list of all possible moves using the input gamestate
         all_moves = self.get_all_moves(game_state)
-        #is this the final level to consider?
+        # is this the final level to consider?
         if depth == 0 or len(all_moves) == 0:
+            # Before terminating, perform quiescence search
+            print("Quiescence Search:")
+
             print('stopping minmax')
-            #TODO: heuristic function to evaluate current board (based on last move)
-            #add a case for original lastmove being NULL on first call (in case depth = 0 is set)
+            # TODO: heuristic function to evaluate current board (based on last move)
+            # add a case for original lastmove being NULL on first call (in case depth = 0 is set)
             return None, self.evaluate_board(game_state, last_move)
             return None, 0
-        #not the final move, check if maximizing player
+        # not the final move, check if maximizing player
         if maximizing_player:
             print('now maximizing')
-            #start with -infty
+            # start with -infty
             best_value = -math.inf
             best_move = random.choice(all_moves)
             for move in all_moves:
                 print('maximizing for move ', move, 'at depth', depth)
-                #update new gamestate
+                # update new gamestate
                 new_gs = deepcopy(game_state)
                 new_gs.board.put(move.i, move.j, move.value)
                 new_gs.moves.append(move)
@@ -192,7 +195,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 if new_value >= best_value:
                     best_value = new_value
                     best_move = move
-            #after the loop, return the best move and its associated value
+            # after the loop, return the best move and its associated value
             return best_move, best_value
         else:
             print('now minimizing')
@@ -201,7 +204,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             best_move = all_moves[0]
             for move in all_moves:
                 print('minimizing for move ', move, 'at depth', depth)
-                #update new gamestate
+                # update new gamestate
                 new_gs = deepcopy(game_state)
                 new_gs.board.put(move.i, move.j, move.value)
                 new_gs.moves.append(move)
@@ -211,13 +214,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 if new_value <= alpha:
                     print('BREAK')
                     break
-                #update beta if allowed to continue
+                # update beta if allowed to continue
                 beta = min(beta, new_value)
-                #update best move and global value to the new move as long as it is at least as good as the previous best
+                # update best move and global value to the new move as long as it is at least as good as the previous best
                 if new_value <= best_value:
                     best_value = new_value
                     best_move = move
-            #after the loop, return the best move and its associated value
+            # after the loop, return the best move and its associated value
             return best_move, best_value
 
     def evaluate_board(self, game_state: GameState, last_move: Move) -> int:
@@ -240,45 +243,116 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         return move_score
 
+    def quiescenceSearch(self, game_state: GameState, last_move: Move, maximizing_player: bool, depth, alpha, beta):
+        """
+        Finds a quiescence situation moving down branches from the current state of the board.
+        @param game_state: The current state of the game
+        @return:
+        """
+        all_moves = self.get_all_moves(game_state)
+        for move in all_moves:
+            if quiet(move):
+                return True
+            else:
+
+                # update new gamestate
+                new_gs = deepcopy(game_state)
+                new_gs.board.put(move.i, move.j, move.value)
+                new_gs.moves.append(move)
+                new_gs.taboo_moves = self.update_taboo_moves(new_gs)
+                new_value = max(best_value, self.alphabeta(new_gs, move, False, depth - 1, alpha, beta)[1])
+                print('NEW VALUE ', new_value)
+                # compare to beta to check for breakoff
+                if new_value >= beta:
+                    print('BREAK')
+                    break
+                # update alpha if allowed to continue
+                alpha = max(alpha, new_value)
+                # update best move and global value to the new move as long as it is at least as good as the previous best
+                if new_value >= best_value:
+                    best_value = new_value
+                    best_move = move
+                # after the loop, return the best move and its associated value
+            return best_move, best_value
+
+
+    def quiet(self, game_state: GameState, move, maximizing_player):
+        """
+        Checks whether a move leads to a quiet situation, that is, a situation in which a next move cannot
+        result in points for either player.
+        @param move: The move for which we want to discover whether it leads to a quiet situation
+        @return: A boolean indicating whether the move leads to a quiet situation or not
+        """
+        # Perform move
+        new_gs = deepcopy(game_state)
+        new_gs.board.put(move.i, move.j, move.value)
+        new_gs.moves.append(move)
+        new_gs.taboo_moves = self.update_taboo_moves(new_gs)
+
+    def updateScore(self, game_state: GameState, move):
+        """
+        Updates the scores of the given game for the given move and returns the new scores. This method implements the
+        evaluation function.
+        @param game_state: The current game state
+        @param move: The move that is made
+        @return: The resulting scores
+        """
+        old_scores = game_state.scores
+        count = 0;
+        rows = game_state.board.m
+        columns = game_state.board.n
+        N = rows*columns
+        # Check row i
+        empty_cells = 0
+        for j in range(0, N):
+            if game_state.board.get(move.i, j) == ".":
+                break
+            if j == N:
+                count+=1
+
+        # Check column j
+        for i in range(0, N):
+            if game_state.board.get(i, move.j) == ".":
+                break
+            if i == N:
+                count+=1
+
+
+
     def evaluate_board_naive(self, board: SudokuBoard, last_move: Move) -> int:
         if last_move == None:
-            #evaluate naively whether the state of the board is good by counting a score based on the number of filled in slots per section on the board
+            # evaluate naively whether the state of the board is good by counting a score based on the number of filled in slots per section on the board
             rows_count = board.n
             cols_count = board.m
             total_score = 0
-            for r in range(1, rows_count+1):
-                for c in range(1, cols_count+1):
-                    #we're at some section of the board positioned as (r,c) in the bottom right corner
+            for r in range(1, rows_count + 1):
+                for c in range(1, cols_count + 1):
+                    # we're at some section of the board positioned as (r,c) in the bottom right corner
                     score_section = 0
                     for p in range(((r - 1) * rows_count), (r * rows_count)):
                         for q in range(((c - 1) * cols_count), (c * cols_count)):
-                            #we now have a singular number in the section denoted by (r,c) in position (p, q) of the board
+                            # we now have a singular number in the section denoted by (r,c) in position (p, q) of the board
                             if not (board.get(p, q) == SudokuBoard.empty):
                                 score_section = score_section + 1
                     total_score = total_score + score_section
             return total_score
         else:
-            #a move was made
-            #TODO implement more defined heuristic based on recent move
+            # a move was made
+            # TODO implement more defined heuristic based on recent move
 
-
-            #TEMPORARY:
+            # TEMPORARY:
             rows_count = board.n
             cols_count = board.m
             total_score = 0
-            for r in range(1, rows_count+1):
-                for c in range(1, cols_count+1):
-                    #were at some section of the board positioned as (r,c) in the bottom right corner
+            for r in range(1, rows_count + 1):
+                for c in range(1, cols_count + 1):
+                    # were at some section of the board positioned as (r,c) in the bottom right corner
                     score_section = 0
                     for p in range(((r - 1) * rows_count), (r * rows_count)):
                         for q in range(((c - 1) * cols_count), (c * cols_count)):
-                            #we now have a singular number in the section denoted by (r,c) in position (p, q) of the board
+                            # we now have a singular number in the section denoted by (r,c) in position (p, q) of the board
                             if not (board.get(p, q) == SudokuBoard.empty):
                                 score_section = score_section + 1
                     total_score = total_score + score_section
             return total_score
         return 0
-
-
-
-
