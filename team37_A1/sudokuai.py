@@ -10,7 +10,7 @@ from copy import deepcopy
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
-from team37_A1.heuristics import move_score, diff_score
+from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections, is_closest
 from team37_A1.metadata import Metadata
 
 
@@ -140,7 +140,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     # update all_moves and board before passing along a new instance for the next call
     def alphabeta(self, game_state: GameState, meta: Metadata, maximizing_player: bool, depth, alpha, beta) -> (Move, int, Metadata):
         nullMove = Move(-1, -1, -1)
-        metaA = deepcopy(meta)
         #get a list of all possible moves using the input gamestate
         all_moves = self.get_all_moves(game_state)
         #is this the final level to consider?
@@ -148,7 +147,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             #print('stopping minmax')
             #TODO: heuristic function to evaluate current board (based on last move)
             #add a case for original lastmove being NULL on first call (in case depth = 0 is set)
-            return nullMove, diff_score(game_state.scores), metaA
+            return nullMove, self.evaluate_state(game_state, meta.last_move), meta
+            return nullMove, diff_score(game_state.scores), meta
             #return None, 0
         depth_1_scores = self.check_random_move(game_state, all_moves)
         # if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
@@ -171,7 +171,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.taboo_moves = self.update_taboo_moves(new_gs)
                 player_number = 1 if len(game_state.moves) % 2 == 0 else 2
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
-                new_value = max(best_value, self.alphabeta(new_gs, metaA, False, depth - 1, alpha, beta)[1])
+                meta.setLast(move)
+                new_value = max(best_value, self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1])
                 #print('NEW VALUE ', new_value)
                 # update best move and global value to the new move as long as it is at least as good as the previous best
                 if new_value > best_value:
@@ -183,7 +184,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 # compare whether the new found move is an improvement over the overall computed proposal
                 if new_value > meta.best_score:
                     #print("Update proposal and metadata")
-                    metaA.set(meta.last_move, move, new_value)
+                    meta.set(meta.last_move, move, new_value)
                     # if it is, then submit it as the new proposal
                     self.propose_move(move)
 
@@ -192,7 +193,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     #print('BETA BREAK', beta, '<=', alpha)
                     break
             #after the loop, return the best move and its associated value
-            return best_move, best_value, metaA
+            return best_move, best_value, meta
         else:
             #print('now minimizing')
             # minimizing player start with infty
@@ -207,7 +208,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.taboo_moves = self.update_taboo_moves(new_gs)
                 player_number = 1 if len(game_state.moves) % 2 == 0 else 2
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
-                new_value = min(best_value, self.alphabeta(new_gs, metaA, True, depth - 1, alpha, beta)[1])
+                meta.setLast(move)
+                new_value = min(best_value, self.alphabeta(new_gs, meta, True, depth - 1, alpha, beta)[1])
                 if new_value < best_value:
                     #print('UPDATING MIN BEST MOVE', best_value, new_value)
                     best_value = new_value
@@ -220,39 +222,55 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     break
                 #update best move and global value to the new move as long as it is at least as good as the previous best
             #after the loop, return the best move and its associated value
-            return best_move, best_value, metaA
-            
-    def evaluate_board(self, game_state: GameState, last_move: Move) -> int:
-        i, j, value = last_move.i, last_move.j, last_move.value
-        print(game_state.board.__str__)
-        print('evaluating for move ', last_move)
-        rows = game_state.board.m
-        columns = game_state.board.n
-        introw = math.ceil((i + 1) / rows)
-        intcol = math.ceil((j + 1) / columns)
-        N = game_state.board.N
+            return best_move, best_value, meta
 
-        col_score = self.check_column(game_state, N, j, value)
-        row_score = self.check_row(game_state, N, i, value)
-        square_score = self.check_square(game_state, introw, intcol, value)
+    @staticmethod
+    def evaluate_state(game_state: GameState, last_move: Move) -> int:
+        p1_score = game_state.scores[0]
+        p2_score = game_state.scores[1] # odd movecount/turns
+        difference = diff_score(game_state.scores) #how much p1 is ahead of p2 (negative implies behind)
 
-        move_score = [col_score, row_score, square_score]
-        print('evaluation is', move_score)
-        move_score = move_score.count(False)
+        curr_player_number = 1 if len(game_state.moves) % 2 == 0 else 2
+        # this counts if the move puts in the second to last value in a row, column or region
+        # implying the opponent can immediately score it at least one of these (so the score advantage will be reduced by at least as many points as can now be scored)
+        possible_opp_gain = immediate_gain(game_state.board, last_move)
 
-        return move_score
+        score_advantage = 100*difference
+        #score_advantage = 10 * (difference - possible_opp_gain)
+        score_advantage = score_advantage + 50*possible_opp_gain if curr_player_number == 2 else score_advantage - 50*possible_opp_gain
 
-    def track_danger(self, game_state: GameState, last_move: Move) -> int:
-        """ Return the amount of points the opponent is able to immediately gain from the current board state
-        @param game_state:
-        @param last_move:
-        @return:
-        """
-        board = game_state.board
-        # check whether the row, column and region the last_move is in can now give points
+        # value a move more if it prepares a section to N-2 completion
+        if prepares_sections(game_state.board, last_move) > 0:
+            score_advantage = score_advantage + 10
+
+        # value a move more if it brings any of the sections (col, row, region) closer to N-2 prepared
+        # prioritize filling up the most filled, non-prepared section as much as possible
+        fullest_count = is_closest(game_state.board, last_move)
+        score_advantage = fullest_count.count(True) * 2 #valued at 0, 2, 4 or 6
 
 
+        # new_gs.scores[player_number - 1] = new_gs.scores[player_number - 1] + move_score(new_gs.board, move)
 
+
+        # i, j, value = last_move.i, last_move.j, last_move.value
+        # print(game_state.board.__str__)
+        # print('evaluating for move ', last_move)
+        # rows = game_state.board.m
+        # columns = game_state.board.n
+        # introw = math.ceil((i + 1) / rows)
+        # intcol = math.ceil((j + 1) / columns)
+        # N = game_state.board.N
+        #
+
+        # col_score = self.check_column(game_state, N, j, value)
+        # row_score = self.check_row(game_state, N, i, value)
+        # square_score = self.check_square(game_state, introw, intcol, value)
+        #
+        # move_score = [col_score, row_score, square_score]
+        # print('evaluation is', move_score)
+        # move_score = move_score.count(False)
+
+        return score_advantage
 
     def evaluate_board_naive(self, board: SudokuBoard, last_move: Move) -> int:
         nullMove = Move(-1, -1, -1)
