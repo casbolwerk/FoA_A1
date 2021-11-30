@@ -25,14 +25,19 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
         Checks whether a certain value can be inserted in a specific block.
         @param game_state: The current state of the game
-        @param i: "Row" of the square (note that this is a different interpretation of row, in terms of blocks)
-        @param j: "Column" of the square (note that this is a different interpretation of column, in terms of blocks)
+        @param i: The row position of the entry
+        @param j: The column position of the entry 
         @param value: The value that we wish to check for
         """
         rows = game_state.board.m
         columns = game_state.board.n
-        for p in range(((i - 1) * rows), (i * rows)):
-            for q in range(((j - 1) * columns), (j * columns)):
+ 
+        # convert row and column to the correct square on the board               
+        introw = math.ceil((i + 1) / rows)
+        intcol = math.ceil((j + 1) / columns)
+        
+        for p in range(((introw - 1) * rows), (introw * rows)):
+            for q in range(((intcol - 1) * columns), (intcol * columns)):
                 if game_state.board.get(p, q) == value:
                     return False
         return True
@@ -87,11 +92,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @return: Boolean indicating whether the move is possible (=True) or not (=False)
         """
         # Compute which of the squares (or blocks) on the board the current position is in:
-        introw = math.ceil((i + 1) / rows)
-        intcol = math.ceil((j + 1) / columns)
+        #introw = math.ceil((i + 1) / rows)
+        #intcol = math.ceil((j + 1) / columns)
         N = game_state.board.N
         if not (self.check_column(game_state, N, j, value) == self.check_row(game_state, N, i, value) ==
-                self.check_square(game_state, introw, intcol, value) == True):
+                self.check_square(game_state, i, j, value) == True):
             return False
         else:
             return game_state.board.get(i, j) == SudokuBoard.empty and not TabooMove(i, j,
@@ -248,15 +253,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         i, j, value = last_move.i, last_move.j, last_move.value
         print(game_state.board.__str__)
         print('evaluating for move ', last_move)
-        rows = game_state.board.m
-        columns = game_state.board.n
-        introw = math.ceil((i + 1) / rows)
-        intcol = math.ceil((j + 1) / columns)
         N = game_state.board.N
 
         col_score = self.check_column(game_state, N, j, value)
         row_score = self.check_row(game_state, N, i, value)
-        square_score = self.check_square(game_state, introw, intcol, value)
+        square_score = self.check_square(game_state, i, j, value)
 
         move_score = [col_score, row_score, square_score]
         print('evaluation is', move_score)
