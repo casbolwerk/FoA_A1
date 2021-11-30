@@ -49,7 +49,7 @@ def simulate_game(initial_board: SudokuBoard, player1: SudokuAI, player2: Sudoku
     number_of_moves = initial_board.squares.count(SudokuBoard.empty)
     print('Initial state')
     open(file_to, 'a').write('Initial state' + "\n")
-    open("Results_test_1.txt", 'a').write('Initial state' + "\n")
+    open("Results_test_2.txt", 'a').write('Initial state' + "\n")
     print(game_state)
     #open(file_to, 'a').write(game_state.__str__())
     #open("Results_test_1.txt", 'a').write(game_state.__str__())
@@ -119,7 +119,7 @@ def simulate_game(initial_board: SudokuBoard, player1: SudokuAI, player2: Sudoku
             else:
                 print(f'No move was supplied. Player {3-player_number} wins the game.')
                 open(file_to, 'a').write(f'No move was supplied. Player {3-player_number} wins the game.' + "\n")
-                open("Results_test_1.txt", 'a').write(f'No move was supplied. Player {3-player_number} wins the game.' + "\n")
+                open("Results_test_2.txt", 'a').write(f'No move was supplied. Player {3-player_number} wins the game.' + "\n")
                 return
             game_state.scores[player_number-1] = game_state.scores[player_number-1] + player_score
             print(f'Reward: {player_score}')
@@ -127,15 +127,15 @@ def simulate_game(initial_board: SudokuBoard, player1: SudokuAI, player2: Sudoku
         if game_state.scores[0] > game_state.scores[1]:
             print('Player 1 wins the game.')
             open(file_to, 'a').write('Player 1 wins the game.' + "\n")
-            open("Results_test_1.txt", 'a').write('Player 1 wins the game with score: ' + str(game_state.scores[0]) + " - " + str(game_state.scores[1]) + "\n")
+            open("Results_test_2.txt", 'a').write('Player 1 wins the game with score: ' + str(game_state.scores[0]) + " - " + str(game_state.scores[1]) + "\n")
         elif game_state.scores[0] == game_state.scores[1]:
             print('The game ends in a draw.')
             open(file_to, 'a').write('The game ends in a draw.' + "\n")
-            open("Results_test_1.txt", 'a').write('The game draws with score: ' + str(game_state.scores[0]) + " - " + str(game_state.scores[1]) + "\n")
+            open("Results_test_2.txt", 'a').write('The game draws with score: ' + str(game_state.scores[0]) + " - " + str(game_state.scores[1]) + "\n")
         elif game_state.scores[0] < game_state.scores[1]:
             print('Player 2 wins the game.')
             open(file_to, 'a').write('Player 2 wins the game.' + "\n")
-            open("Results_test_1.txt", 'a').write('Player 2 wins the game with score: ' + str(game_state.scores[0]) + " - " + str(game_state.scores[1]) + "\n")
+            open("Results_test_2.txt", 'a').write('Player 2 wins the game with score: ' + str(game_state.scores[0]) + " - " + str(game_state.scores[1]) + "\n")
 
 def main():
     solve_sudoku_path = 'bin\\solve_sudoku.exe' if platform.system() == 'Windows' else 'bin/solve_sudoku'
@@ -172,39 +172,39 @@ def main():
         player2.solve_sudoku_path = solve_sudoku_path
 
     # global file to add stuff to
-    open("Results_test_1.txt", 'a').write("Initial creation \n")
+    #open("Results_test_2.txt", 'a').write("Initial creation \n")
 
-    # # first run agent vs random on 3x3 empty 10 times for each compute-time: 0.1, 0.5, 1, 5
+    # # first run agent vs greedy on 3x3 empty 10 times for each compute-time: 0.1, 0.5, 1, 5
     # board_text = Path("boards\empty-3x3.txt").read_text()
     # board = load_sudoku_from_text(board_text)
     # times = [0.1, 0.5, 1.0, 5.0]
     # mod1 = importlib.import_module('team37_A1.sudokuai')
-    # mod2 = importlib.import_module('random_player.sudokuai')
+    # mod2 = importlib.import_module('greedy_player.sudokuai')
     # player1 = mod1.SudokuAI()
     # player2 = mod2.SudokuAI()
     # player2.solve_sudoku_path = solve_sudoku_path
     # for t in times:
     #     for i in range(1, 4):
     #         print("Test started")
-    #         file_name = 'testlogs\AvR3x3\Agent-v-random_3x3_time_' + str(t) + "_test_" + str(i) + '.txt'
-    #         open("Results_test_1.txt", 'a').write("Results for run: " + file_name + "\n")
+    #         file_name = 'testlogs\AvG3x3\Agent-v-greedy_3x3_time_' + str(t) + "_test_" + str(i) + '.txt'
+    #         open("Results_test_2.txt", 'a').write("Results for run: " + file_name + "\n")
     #         simulate_game(board, player1, player2, solve_sudoku_path=solve_sudoku_path, file_to=file_name, calculation_time=t)
     #         print("Test completed")
 
-    # # repeat the first test but with random vs agent instead
+    # # repeat the first test but with greedy vs agent instead
     # board_text = Path("boards\empty-3x3.txt").read_text()
     # board = load_sudoku_from_text(board_text)
     # times = [0.1, 0.5, 1.0, 5.0]
     # mod2 = importlib.import_module('team37_A1.sudokuai')
-    # mod1 = importlib.import_module('random_player.sudokuai')
+    # mod1 = importlib.import_module('greedy_player.sudokuai')
     # player2 = mod2.SudokuAI()
     # player1 = mod1.SudokuAI()
     # player1.solve_sudoku_path = solve_sudoku_path
     # for t in times:
     #     for i in range(1, 4):
     #         print("Test started")
-    #         file_name = 'testlogs\RvA3x3\\Random-v-Agent_3x3_time_' + str(t) + "_test_" + str(i) + '.txt'
-    #         open("Results_test_1.txt", 'a').write("Results for run: " + file_name + "\n")
+    #         file_name = 'testlogs\GvA3x3\\greedy-v-Agent_3x3_time_' + str(t) + "_test_" + str(i) + '.txt'
+    #         open("Results_test_2.txt", 'a').write("Results for run: " + file_name + "\n")
     #         simulate_game(board, player1, player2, solve_sudoku_path=solve_sudoku_path, file_to=file_name,
     #                       calculation_time=t)
     #         print("Test completed")
@@ -217,40 +217,40 @@ def main():
     #     board = load_sudoku_from_text(board_text)
     #     times = [0.1, 0.5, 1.0, 5.0]
     #     mod1 = importlib.import_module('team37_A1.sudokuai')
-    #     mod2 = importlib.import_module('random_player.sudokuai')
+    #     mod2 = importlib.import_module('greedy_player.sudokuai')
     #     player1 = mod1.SudokuAI()
     #     player2 = mod2.SudokuAI()
     #     player2.solve_sudoku_path = solve_sudoku_path
     #     for t in times:
     #         for i in range(1, 4):
     #             print("Test started")
-    #             file_name = 'testlogs\AvR' + field[j] + '\Agent-v-Random_'+ field[j] + '_time_' + str(t) + "_test_" + str(i) + '.txt'
-    #             open("Results_test_1.txt", 'a').write("Results for run: " + file_name + "\n")
+    #             file_name = 'testlogs\AvG' + field[j] + '\Agent-v-greedy_'+ field[j] + '_time_' + str(t) + "_test_" + str(i) + '.txt'
+    #             open("Results_test_2.txt", 'a').write("Results for run: " + file_name + "\n")
     #             simulate_game(board, player1, player2, solve_sudoku_path=solve_sudoku_path, file_to=file_name,
     #                           calculation_time=t)
     #             print("Test completed")
 
 
     # repeat the second test for every non-empty board position
-    boards = ["easy-3x3.txt", "hard-3x3.txt", "easy-2x2.txt", "random-2x3.txt", "random-3x3.txt", "random-3x4.txt", "random-4x4.txt"]
-    field = ["E3x3", "H3x3", "E2x2", "R2x3", "R3x3", "R3x4", "R4x4"]
-    for j in range(7):
-        board_text = Path("boards\\" + boards[j]).read_text()
-        board = load_sudoku_from_text(board_text)
-        times = [0.1, 0.5, 1.0, 5.0]
-        mod2 = importlib.import_module('team37_A1.sudokuai')
-        mod1 = importlib.import_module('random_player.sudokuai')
-        player2 = mod2.SudokuAI()
-        player1 = mod1.SudokuAI()
-        player1.solve_sudoku_path = solve_sudoku_path
-        for t in times:
-            for i in range(1, 4):
-                print("Test started")
-                file_name = 'testlogs\RvA' + field[j] + '\Random-v-Agent_'+ field[j] + '_time_' + str(t) + "_test_" + str(i) + '.txt'
-                open("Results_test_1.txt", 'a').write("Results for run: " + file_name + "\n")
-                simulate_game(board, player1, player2, solve_sudoku_path=solve_sudoku_path, file_to=file_name,
-                              calculation_time=t)
-                print("Test completed")
+    # boards = ["easy-3x3.txt", "hard-3x3.txt", "easy-2x2.txt", "random-2x3.txt", "random-3x3.txt", "random-3x4.txt", "random-4x4.txt"]
+    # field = ["E3x3", "H3x3", "E2x2", "R2x3", "R3x3", "R3x4", "R4x4"]
+    # for j in range(7):
+    #     board_text = Path("boards\\" + boards[j]).read_text()
+    #     board = load_sudoku_from_text(board_text)
+    #     times = [0.1, 0.5, 1.0, 5.0]
+    #     mod2 = importlib.import_module('team37_A1.sudokuai')
+    #     mod1 = importlib.import_module('greedy_player.sudokuai')
+    #     player2 = mod2.SudokuAI()
+    #     player1 = mod1.SudokuAI()
+    #     player1.solve_sudoku_path = solve_sudoku_path
+    #     for t in times:
+    #         for i in range(1, 4):
+    #             print("Test started")
+    #             file_name = 'testlogs\GvA' + field[j] + '\greedy-v-Agent_'+ field[j] + '_time_' + str(t) + "_test_" + str(i) + '.txt'
+    #             open("Results_test_2.txt", 'a').write("Results for run: " + file_name + "\n")
+    #             simulate_game(board, player1, player2, solve_sudoku_path=solve_sudoku_path, file_to=file_name,
+    #                           calculation_time=t)
+    #             print("Test completed")
 
 if __name__ == '__main__':
     main()
