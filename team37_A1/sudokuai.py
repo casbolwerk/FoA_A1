@@ -125,7 +125,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #    self.propose_move(random.choice(all_moves))
         depth = 1
         meta = Metadata(nullMove, proposal, -math.inf)
-        while True:
+        while depth <= 4:
         #initiate a metadata to be sent with the original call, consisting of nullmove, the picked "fallback" move and
         #  a score of -inf to ensure any computed move is picked during computation to replace it
         #  Note: as we do not know if this move is an improvement over the random move, this essentially serves as another random move
@@ -152,9 +152,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #is this the final level to consider?
         if depth == 0 or len(all_moves) == 0:
             #print('stopping minmax')
-            #check if the game didnt deadlock
-            if len(all_moves) == 0 and self.hasEmpty(game_state.board):
-                return nullMove, -math.inf, meta
+            #check if the game finished
+            if len(all_moves) == 0 and not self.hasEmpty(game_state.board):
+                # we've reach a state we cannot move from any longer so we return the final score
+                return nullMove, diff_score(game_state.scores), meta
             #TODO: heuristic function to evaluate current board (based on last move)
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
             return nullMove, diff_score(game_state.scores), meta
@@ -171,6 +172,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             #start with -infty
             best_value = -math.inf
             best_move = random.choice(all_moves)
+            #temp
+            values = []
+            moves = []
             for move in all_moves:
                 #print('maximizing for move ', move, 'at depth', depth)
                 #update new gamestate
@@ -182,6 +186,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
                 meta.setLast(move)
                 new_value = max(best_value, self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1])
+                values.append(new_value)
+                moves.append(move.__str__())
                 #print("MAX:  Move ", move.__str__(), " has value ", new_value, " at height ", depth)
                 #print('NEW VALUE ', new_value)
                 # update best move and global value to the new move as long as it is at least as good as the previous best
@@ -238,6 +244,33 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
     @staticmethod
     def evaluate_state(game_state: GameState, last_move: Move) -> int:
+        def hasEmpty(board: SudokuBoard) -> bool:
+            for i in range(board.N):
+                for j in range(board.N):
+                    if board.get(i, j) is SudokuBoard.empty:
+                        return True
+            return False
+
+        # def get_all_moves(game_state: GameState):
+        #     N = game_state.board.N
+        #
+        #     rows = game_state.board.m
+        #     columns = game_state.board.n
+        #
+        #     all_moves = [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N + 1) if
+        #                  self.possible_move(game_state, i, j, value, rows, columns)]
+        #
+        #     return all_moves
+        #
+        # # # check if the game didnt deadlock
+        # if len(get_all_moves(game_state)) == 0 and hasEmpty(game_state.board):
+        #     # we reached a deadlocked state which means that some move in the chain until this point causes the deadlock
+        #     # TODO: somehow make the deadlocked turn have a better value so it is more likely to be picked such that the pace is reset
+        #     #return nullMove, -math.inf, meta
+        #     # if the pace determines loss, then pick this route
+        #     #
+        #     return 1
+
         p1_score = game_state.scores[0]
         p2_score = game_state.scores[1] # odd movecount/turns
         temp_score = game_state.scores
@@ -251,12 +284,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # if curr_player is 1 then player 2 scores the "Easily obtained" points, else player 1 scores them
         score_advantage = difference
-        def hasEmpty(board: SudokuBoard) -> bool:
-            for i in range(board.N):
-                for j in range(board.N):
-                    if board.get(i, j) is SudokuBoard.empty:
-                        return True
-            return False
+
         if not hasEmpty(game_state.board):
             #the game has ended with the last turn
             #check whether the resulting score is winning
