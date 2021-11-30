@@ -143,103 +143,139 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     return True
         return False
 
-    #TODO to improve the amount of data passed each time, exchange game_state with a combination of board and all_moves list
-    # update all_moves and board before passing along a new instance for the next call
+    # TODO: Implement an additional tracker which lets us store and potentially use a deadlock state,
+    #           to adjust which player is taking the final turn of the game (and getting a default 7 points)
     def alphabeta(self, game_state: GameState, meta: Metadata, maximizing_player: bool, depth, alpha, beta) -> (Move, int, Metadata):
+        """
+        Perform a minimax algorithm using Alpha-Beta pruning.
+        @param game_state: The current game state to consider at the root node of the alphabeta() routine
+        @param meta: The metadata attached to the current routine and turn computation
+        @param maximizing_player: Whether the current routine call concerns the maximizing player
+        @param depth: The maximum depth the routine is supposed to reach
+        @param alpha: The current alpha value to be considered for pruning
+        @param beta: The current beta value to be considered for pruning
+        @return:
+        """
+
+        # Default nullMove for referencing (this ensures that any call with no move is able to be compared with moves it may encounter)
         nullMove = Move(-1, -1, -1)
-        #get a list of all possible moves using the input gamestate
+        # Get a list of all possible moves using the input gamestate
         all_moves = self.get_all_moves(game_state)
-        #is this the final level to consider?
+        # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:
-            #print('stopping minmax')
-            #check if the game finished
-            if len(all_moves) == 0 and not self.hasEmpty(game_state.board):
-                # we've reach a state we cannot move from any longer so we return the final score
-                return nullMove, diff_score(game_state.scores), meta
-            #TODO: heuristic function to evaluate current board (based on last move)
+            # Check if the game finished
+            if len(all_moves) == 0:
+                if not self.hasEmpty(game_state.board):
+                    # As we've reach a state we cannot move from any longer so we return the final score of the board
+                    return nullMove, diff_score(game_state.scores), meta
+                else:
+                    # We cannot perform any more moves but the game is not finished, we've hit a deadlock
+                    # We avoid this deadlock path by returning -math.inf as the evaluation
+                    return nullMove, -math.inf, meta
+
+            # Evaluate the leaf node based on the heuristics function "evaluate_state"
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
-            return nullMove, diff_score(game_state.scores), meta
-            #return None, 0
-        depth_1_scores = self.check_random_move(game_state, all_moves)
+            #Alternative evaluation method: only consider the game score of the resulting board
+            #return nullMove, diff_score(game_state.scores), meta
+
+        #TODO: is this computation still worth using or do we abandon it?
+        #depth_1_scores = self.check_random_move(game_state, all_moves)
         # if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
         #     #print('do random move')
         #     return random.choice(all_moves), 0
         # else:
         #     all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
-        # #not the final move, check if maximizing player
+        #TODO: end todo
+
+        # Not a leaf node, compute the best option among the sub-trees according to the maximizing_player parameter
         if maximizing_player:
-            #print('now maximizing')
-            #start with -infty
+            # Start with -infty
             best_value = -math.inf
+            # Pick a random move to ensure some move will be returned after computation
             best_move = random.choice(all_moves)
-            #temp
-            values = []
-            moves = []
+
+            # Compute the best sub-tree each created using one of the possible moves
             for move in all_moves:
-                #print('maximizing for move ', move, 'at depth', depth)
-                #update new gamestate
+                # Create a copy of the game_state (to avoid any backward passing problems)
                 new_gs = deepcopy(game_state)
+                # Update the copied game state with the information resulting from the executed move
                 new_gs.board.put(move.i, move.j, move.value)
                 new_gs.moves.append(move)
                 new_gs.taboo_moves = self.update_taboo_moves(new_gs)
+                # Update the scores in the game
                 player_number = 1 if len(game_state.moves) % 2 == 0 else 2
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
+                # Update the metadata, note that meta.best_move and meta.best_value did not change (yet)
                 meta.setLast(move)
+                # Compute and compare the evaluation of further subtree's selecting the maximum of the highest found sub-tree and the current sub-tree
                 new_value = max(best_value, self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1])
-                values.append(new_value)
-                moves.append(move.__str__())
-                #print("MAX:  Move ", move.__str__(), " has value ", new_value, " at height ", depth)
-                #print('NEW VALUE ', new_value)
-                # update best move and global value to the new move as long as it is at least as good as the previous best
-                if new_value > best_value:
-                    #print("We found a better value with old: ", best_value, " and new: ", new_value)
-                    #print('UPDATING MAX BEST MOVE', best_value, new_value)
+
+                # Update best move and global value to the new move as long as it is at least as good as the previous best
+                if new_value >= best_value:
                     best_value = new_value
                     best_move = move
-                # update alpha if allowed to continue
+
+                # Compare the alpha and beta and break off further sub-tree computation if the alphabeta pruning requirement is met
+                if beta <= alpha:
+                    break
+
+                # Update the alpha value
                 alpha = max(alpha, new_value)
-                # compare whether the new found move is an improvement over the overall computed proposal
+
+                # TODO: check whether this works even at depths lower than the root call depth (likely not)
+                # """
+                # Compare whether the new found move is an improvement over the overall computed proposal.
+                # This can be done as we are exploring sub-trees at the same or a deeper depth than what is stored initially.
+                # As we are in a maximizing step, if the evaluated value of such sub-tree is higher than what is stored,
+                # We are guaranteed to pick a sub-tree at least as good as the current, thus we can update the proposed move
+                # ahead of time, which will last until time runs out or another improvement is found.
+                # @note: we use '>' over '>=' as there is more certainty in the results of sub-trees at a higher depth
+                #         which means that an equal evaluation simply introduces additional risk.
+                # """
                 # if new_value > meta.best_score:
-                #     #print("Update proposal and metadata")
-                #     #print("New proposal inserted", meta.best_move.__str__(), meta.best_score, " replaced with ", move.__str__(), new_value)
+                #     # Update the metadata being passed along and propose the found move
                 #     meta.set(meta.last_move, move, new_value)
-                #     # if it is, then submit it as the new proposal
                 #     self.propose_move(move)
 
-                # compare to beta to check for breakoff
-                if beta <= alpha:
-                    #print('BETA BREAK', beta, '<=', alpha)
-                    break
-            #after the loop, return the best move and its associated value
+            # Return the best move found at the root node
             return best_move, best_value, meta
         else:
-            #print('now minimizing')
-            # minimizing player start with infty
+            # This is the minimizing players actions
+
+            # Start with infty
             best_value = math.inf
+            # Pick a random move to ensure some move will be returned after computation
             best_move = random.choice(all_moves)
+
+            # Compute the best sub-tree each created using one of the possible moves
             for move in all_moves:
-                #print('minimizing for move ', move, 'at depth', depth)
-                #update new gamestate
+                # Create a copy of the game_state (to avoid any backward passing problems)
                 new_gs = deepcopy(game_state)
+                # Update the copied game state with the information resulting from the executed move
                 new_gs.board.put(move.i, move.j, move.value)
                 new_gs.moves.append(move)
                 new_gs.taboo_moves = self.update_taboo_moves(new_gs)
+                # Update the scores in the game
                 player_number = 1 if len(game_state.moves) % 2 == 0 else 2
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
+                # Update the metadata, note that meta.best_move and meta.best_value did not change (yet)
                 meta.setLast(move)
+                # Compute and compare the evaluation of further subtree's selecting the minimum of the lowest found sub-tree and the current sub-tree
                 new_value = min(best_value, self.alphabeta(new_gs, meta, True, depth - 1, alpha, beta)[1])
-                #print("MIN:   Move ", move.__str__(), " has value ", new_value, " at height ", depth)
+
+                # Update best move and global value to the new move as long as it is at least as good as the previous best
                 if new_value < best_value:
-                    #print('UPDATING MIN BEST MOVE', best_value, new_value)
                     best_value = new_value
                     best_move = move
-                #update beta if allowed to continue
-                beta = min(beta, new_value)
+
                 # compare the alpha to check for breakoff
                 if beta <= alpha:
                     #print('ALPHA BREAK', beta, '<=', alpha)
                     break
-            #after the loop, return the best move and its associated value
+
+                # Update the beta value
+                beta = min(beta, new_value)
+            # Return the best move found at the root node
             return best_move, best_value, meta
 
     @staticmethod
