@@ -33,8 +33,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
         rows = game_state.board.m
         columns = game_state.board.n
-        for p in range(((i - 1) * rows), (i * rows)):
-            for q in range(((j - 1) * columns), (j * columns)):
+ 
+        # convert row and column to the correct square on the board               
+        introw = math.ceil((i + 1) / rows)
+        intcol = math.ceil((j + 1) / columns)
+        
+        for p in range(((introw - 1) * rows), (introw * rows)):
+            for q in range(((intcol - 1) * columns), (intcol * columns)):
                 if game_state.board.get(p, q) == value:
                     return False
         return True
@@ -69,28 +74,38 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
     def possible_move(self, game_state, i, j, value, rows, columns):
         """
-        Compute whether a move is allowed on the input game_state
-        @param game_state: The game state on which to check the moves validity
-        @param i: The row position of the move to be checked
-        @param j: The column position of the move to be checked
-        @param value: The value associated with the move to be checked
-        @param rows: The number of rows on the board
-        @param columns: The number of columns on the board
-        @return: Whether the move is allowed
+        Checks whether a certain turn is possible, that is:
+         - the position of the board is non-empty
+         - the particular value to be inserted in the empty board position is not in the list of taboo moves
+         - the value to be entered is not already included in the section
+         - the value to be entered is not already in the same row
+         - the value to be entered is not already in the same column
+        @param game_state: The current state of the game
+        @param i: The row in which the agent will possibly insert
+        @param j: The column in which the agent will possibly insert
+        @param value: The value which the agent wishes to insert
+        @param rows: The # of rows (per block)
+        @param columns: The # of columns (per block)
+        @return: Boolean indicating whether the move is possible (=True) or not (=False)
         """
-        # Compute which of the squares on the board the current position is in
-        introw = math.ceil((i + 1) / rows)
-        intcol = math.ceil((j + 1) / columns)
+        # Compute which of the squares (or blocks) on the board the current position is in:
+        #introw = math.ceil((i + 1) / rows)
+        #intcol = math.ceil((j + 1) / columns)
         N = game_state.board.N
         # Return whether the move violates any of the games rules
         if not (self.check_column(game_state, N, j, value) == self.check_row(game_state, N, i, value) ==
-                self.check_square(game_state, introw, intcol, value) == True):
+                self.check_square(game_state, i, j, value) == True):
             return False
         else:
             return game_state.board.get(i, j) == SudokuBoard.empty and not TabooMove(i, j,
                                                                                      value) in game_state.taboo_moves
 
     def get_all_moves(self, game_state: GameState):
+        """
+        Gets all the possible moves from the current state of the game.
+        @param game_state: The current state of the game
+        @return: A list with all possible moves
+        """
         N = game_state.board.N
 
         rows = game_state.board.m
@@ -102,6 +117,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return all_moves
 
     def update_taboo_moves(self, game_state:GameState):
+        """
+        Updates the list of taboo moves.
+        @param game_state: The current state of the game
+        @return: A list with the taboo moves
+        """
         taboo_moves = []
         if len(game_state.moves) > 0:
             last_move = game_state.moves[-1]
@@ -121,6 +141,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 if not self.possible_move(game_state, _i, j, value, rows, columns):
                     taboo_moves.append(taboo_move)
 
+        # Concatenate with the list of moves that were established to be taboo before
         if game_state.taboo_moves:
             taboo_moves = game_state.taboo_moves + taboo_moves
         else:
@@ -363,3 +384,4 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         
         
         
+
