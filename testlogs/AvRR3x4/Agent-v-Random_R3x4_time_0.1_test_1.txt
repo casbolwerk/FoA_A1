@@ -1,0 +1,9 @@
+Initial state
+-----------------------------
+Calculate a move for player 1
+Best move: (6,3) -> 5
+The sudoku has no solution after the move (6,3) -> 5.
+-----------------------------
+Calculate a move for player 2
+Best move: (0,0) -> 0
+No move was supplied. Player 1 wins the game.

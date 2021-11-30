@@ -1,0 +1,80 @@
+Initial state
+-----------------------------
+Calculate a move for player 1
+Best move: (5,4) -> 3
+-----------------------------
+Calculate a move for player 2
+Best move: (2,2) -> 3
+The sudoku has no solution after the move (2,2) -> 3.
+-----------------------------
+Calculate a move for player 1
+Best move: (5,3) -> 5
+The sudoku has no solution after the move (5,3) -> 5.
+-----------------------------
+Calculate a move for player 2
+Best move: (3,2) -> 4
+The sudoku has no solution after the move (3,2) -> 4.
+-----------------------------
+Calculate a move for player 1
+Best move: (5,3) -> 2
+-----------------------------
+Calculate a move for player 2
+Best move: (2,3) -> 3
+-----------------------------
+Calculate a move for player 1
+Best move: (5,2) -> 6
+-----------------------------
+Calculate a move for player 2
+Best move: (0,0) -> 4
+The sudoku has no solution after the move (0,0) -> 4.
+-----------------------------
+Calculate a move for player 1
+Best move: (5,1) -> 5
+-----------------------------
+Calculate a move for player 2
+Best move: (1,2) -> 5
+-----------------------------
+Calculate a move for player 1
+Best move: (5,0) -> 4
+-----------------------------
+Calculate a move for player 2
+Best move: (3,2) -> 2
+The sudoku has no solution after the move (3,2) -> 2.
+-----------------------------
+Calculate a move for player 1
+Best move: (4,3) -> 5
+-----------------------------
+Calculate a move for player 2
+Best move: (3,4) -> 2
+-----------------------------
+Calculate a move for player 1
+Best move: (3,5) -> 5
+-----------------------------
+Calculate a move for player 2
+Best move: (3,1) -> 4
+-----------------------------
+Calculate a move for player 1
+Best move: (3,2) -> 3
+-----------------------------
+Calculate a move for player 2
+Best move: (1,0) -> 6
+The sudoku has no solution after the move (1,0) -> 6.
+-----------------------------
+Calculate a move for player 1
+Best move: (2,2) -> 2
+-----------------------------
+Calculate a move for player 2
+Best move: (0,0) -> 6
+-----------------------------
+Calculate a move for player 1
+Best move: (2,1) -> 6
+-----------------------------
+Calculate a move for player 2
+Best move: (1,0) -> 2
+-----------------------------
+Calculate a move for player 1
+Best move: (1,4) -> 6
+-----------------------------
+Calculate a move for player 2
+Best move: (0,2) -> 4
+Player 1 wins the game.
