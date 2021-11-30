@@ -1,0 +1,6 @@
+Initial creation 
+Results for run: Agent-v-random_3x3_time_0.1.txt
+Initial state
+No move was supplied. Player 1 wins the game.
+Results for run: Agent-v-random_3x3_time_0.5.txt
+Initial state
