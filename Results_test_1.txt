@@ -349,4 +349,256 @@ Initial state
 Player 1 wins the game with score: 50 - 20
 Results for run: testlogs\AvRR4x4\Agent-v-Random_R4x4_time_5.0_test_3.txt
 Initial state
-Player 1 wins the game with score: 49 - 18
+Player 1 wins the game with score: 49 - 18Initial creation 
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_0.1_test_1.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_0.1_test_2.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_0.1_test_3.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_0.5_test_1.txt
+Initial state
+Player 2 wins the game with score: 11 - 28
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_0.5_test_2.txt
+Initial state
+Player 2 wins the game with score: 16 - 25
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_0.5_test_3.txt
+Initial state
+Player 2 wins the game with score: 13 - 29
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_1.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 15 - 23
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_1.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 17 - 26
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_1.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 7 - 37
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_5.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 12 - 24
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_5.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 8 - 32
+Results for run: testlogs\RvAE3x3\Random-v-Agent_E3x3_time_5.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 16 - 22
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_0.1_test_1.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_0.1_test_2.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_0.1_test_3.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_0.5_test_1.txt
+Initial state
+Player 2 wins the game with score: 16 - 23
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_0.5_test_2.txt
+Initial state
+Player 2 wins the game with score: 9 - 35
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_0.5_test_3.txt
+Initial state
+Player 2 wins the game with score: 18 - 20
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_1.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 10 - 27
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_1.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 9 - 29
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_1.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 15 - 21
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_5.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 18 - 24
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_5.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 13 - 27
+Results for run: testlogs\RvAH3x3\Random-v-Agent_H3x3_time_5.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 11 - 28
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_0.1_test_1.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_0.1_test_2.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_0.1_test_3.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_0.5_test_1.txt
+Initial state
+Player 2 wins the game with score: 7 - 14
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_0.5_test_2.txt
+Initial state
+Player 1 wins the game with score: 15 - 3
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_0.5_test_3.txt
+Initial state
+Player 2 wins the game with score: 8 - 10
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_1.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 8 - 10
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_1.0_test_2.txt
+Initial state
+Player 1 wins the game with score: 14 - 7
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_1.0_test_3.txt
+Initial state
+Player 1 wins the game with score: 10 - 8
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_5.0_test_1.txt
+Initial state
+Player 1 wins the game with score: 17 - 1
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_5.0_test_2.txt
+Initial state
+Player 1 wins the game with score: 17 - 1
+Results for run: testlogs\RvAE2x2\Random-v-Agent_E2x2_time_5.0_test_3.txt
+Initial state
+Player 1 wins the game with score: 17 - 1
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_0.1_test_1.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_0.1_test_2.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_0.1_test_3.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_0.5_test_1.txt
+Initial state
+Player 2 wins the game with score: 11 - 20
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_0.5_test_2.txt
+Initial state
+Player 2 wins the game with score: 6 - 24
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_0.5_test_3.txt
+Initial state
+Player 2 wins the game with score: 12 - 17
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_1.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 12 - 17
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_1.0_test_2.txt
+Initial state
+Player 1 wins the game with score: 17 - 11
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_1.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 12 - 19
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_5.0_test_1.txt
+Initial state
+Player 1 wins the game with score: 19 - 14
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_5.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 8 - 25
+Results for run: testlogs\RvAR2x3\Random-v-Agent_R2x3_time_5.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 7 - 23
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_0.1_test_1.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_0.1_test_2.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_0.1_test_3.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_0.5_test_1.txt
+Initial state
+Player 2 wins the game with score: 16 - 23
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_0.5_test_2.txt
+Initial state
+Player 2 wins the game with score: 14 - 23
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_0.5_test_3.txt
+Initial state
+Player 2 wins the game with score: 13 - 30
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_1.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 15 - 22
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_1.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 17 - 23
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_1.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 16 - 25
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_5.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 11 - 34
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_5.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 13 - 30
+Results for run: testlogs\RvAR3x3\Random-v-Agent_R3x3_time_5.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 19 - 21
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_0.1_test_1.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_0.1_test_2.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_0.1_test_3.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_0.5_test_1.txt
+Initial state
+Player 2 wins the game with score: 26 - 30
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_0.5_test_2.txt
+Initial state
+Player 2 wins the game with score: 24 - 34
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_0.5_test_3.txt
+Initial state
+Player 2 wins the game with score: 27 - 32
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_1.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 17 - 33
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_1.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 19 - 36
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_1.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 25 - 28
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_5.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 16 - 34
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_5.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 14 - 40
+Results for run: testlogs\RvAR3x4\Random-v-Agent_R3x4_time_5.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 16 - 38
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_0.1_test_1.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_0.1_test_2.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_0.1_test_3.txt
+Initial state
+No move was supplied. Player 2 wins the game.
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_0.5_test_1.txt
+Initial state
+Player 1 wins the game with score: 44 - 43
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_0.5_test_2.txt
+Initial state
+Player 2 wins the game with score: 44 - 45
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_0.5_test_3.txt
+Initial state
+Player 1 wins the game with score: 44 - 37
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_1.0_test_1.txt
+Initial state
+Player 1 wins the game with score: 38 - 37
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_1.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 30 - 50
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_1.0_test_3.txt
+Initial state
+Player 1 wins the game with score: 49 - 34
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_5.0_test_1.txt
+Initial state
+Player 2 wins the game with score: 30 - 42
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_5.0_test_2.txt
+Initial state
+Player 2 wins the game with score: 15 - 60
+Results for run: testlogs\RvAR4x4\Random-v-Agent_R4x4_time_5.0_test_3.txt
+Initial state
+Player 2 wins the game with score: 20 - 46
