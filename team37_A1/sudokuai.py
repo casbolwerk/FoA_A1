@@ -285,6 +285,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 #     # Update the metadata being passed along and propose the found move
                 #     meta.set(meta.last_move, move, new_value)
                 #     self.propose_move(move)
+                # TODO: end todo
 
             # Return the best move found at the root node
             return best_move, best_value, meta
@@ -327,75 +328,36 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # Return the best move found at the root node
             return best_move, best_value, meta
 
-    @staticmethod
-    def evaluate_state(game_state: GameState, last_move: Move) -> int:
-        def hasEmpty(board: SudokuBoard) -> bool:
-            for i in range(board.N):
-                for j in range(board.N):
-                    if board.get(i, j) is SudokuBoard.empty:
-                        return True
-            return False
-
-        # def get_all_moves(game_state: GameState):
-        #     N = game_state.board.N
-        #
-        #     rows = game_state.board.m
-        #     columns = game_state.board.n
-        #
-        #     all_moves = [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N + 1) if
-        #                  self.possible_move(game_state, i, j, value, rows, columns)]
-        #
-        #     return all_moves
-        #
-        # # # check if the game didnt deadlock
-        # if len(get_all_moves(game_state)) == 0 and hasEmpty(game_state.board):
-        #     # we reached a deadlocked state which means that some move in the chain until this point causes the deadlock
-        #     # TODO: somehow make the deadlocked turn have a better value so it is more likely to be picked such that the pace is reset
-        #     #return nullMove, -math.inf, meta
-        #     # if the pace determines loss, then pick this route
-        #     #
-        #     return 1
-
-        p1_score = game_state.scores[0]
-        p2_score = game_state.scores[1] # odd movecount/turns
-        temp_score = game_state.scores
+    def evaluate_state(self, game_state: GameState, last_move: Move) -> int:
+        """
+        Evaluates the current state of the game.
+        @param game_state: The game state to evaluate
+        @param last_move: The last move made in the sub-tree
+        @return: An evaluation of the input game state
+        """
+        # Use the naive implementation (only the score difference of the resulting board state)
+        naive = True
 
         difference = diff_score(game_state.scores) #how much p1 is ahead of p2 (negative implies behind)
-
-        curr_player_number = 1 if len(game_state.moves) % 2 == 0 else 2
-        possible_opp_gain = immediate_gain(game_state.board, last_move)
-
-        # score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
-
-        # if curr_player is 1 then player 2 scores the "Easily obtained" points, else player 1 scores them
         score_advantage = difference
 
-        if not hasEmpty(game_state.board):
-            #the game has ended with the last turn
-            #check whether the resulting score is winning
-            winning = difference >= 0 if curr_player_number == 1 else difference < 0
-            if winning:
-                score_advantage = score_advantage + 10 # if curr_player_number == 1 else score_advantage - 100
-        else:
-            score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
-        # this counts if the move puts in the second to last value in a row, column or region
-        # implying the opponent can immediately score it at least one of these (so the score advantage will be reduced by at least as many points as can now be scored)
-        #score_advantage = 2*move_score(game_state.board, last_move) - possible_opp_gain + difference
-        #score_advantage = 10 * (difference - possible_opp_gain)
-        #print("Opponent can score: ", possible_opp_gain, " - the current score difference: ", difference, " - considering player number: ", curr_player_number)
-        #score_advantage = 100 * (difference - possible_opp_gain) #if curr_player_number == 2 else 100 * (difference - possible_opp_gain)
-        #print("So we get a score advantage of: ", score_advantage)
-        # # value a move more if it prepares a section to N-2 completion
-        # if prepares_sections(game_state.board, last_move) > 0:
-        #      score_advantage = score_advantage + 20
-        #
-        # # value a move more if it brings any of the sections (col, row, region) closer to N-2 prepared
-        # # prioritize filling up the most filled, non-prepared section as much as possible
-        # fullest_count = is_closest(game_state.board, last_move)
-        # score_advantage = fullest_count.count(True) * 5 #valued at 0, 5, 10, 15
+        if not naive:
+            # Check who's turn it is
+            curr_player_number = 1 if len(game_state.moves) % 2 == 0 else 2
+            # Compute whether there are points to be scored by the opponent in the next turn
+            possible_opp_gain = immediate_gain(game_state.board, last_move)
 
-        #return score_advantage
-        #NAIVE:
+            # Check whether the game has ended with the last turn
+            if not hasEmpty(game_state.board):
+                # Check whether the resulting score is winning
+                winning = difference >= 0 if curr_player_number == 1 else difference < 0
+                # Update the evaluation based on whether the player is winning
+                if winning:
+                    score_advantage = score_advantage + 10 # if curr_player_number == 1 else score_advantage - 100
+            else:
+                # Otherwise use a combination of the score difference and the possible gain by the opponent (which reduces the score)
+                score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
+
         return score_advantage
         
         
