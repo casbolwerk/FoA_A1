@@ -348,3 +348,5 @@ Results for run: testlogs\AvRR4x4\Agent-v-Random_R4x4_time_5.0_test_2.txt
 Initial state
 Player 1 wins the game with score: 50 - 20
 Results for run: testlogs\AvRR4x4\Agent-v-Random_R4x4_time_5.0_test_3.txt
+Initial state
+Player 1 wins the game with score: 49 - 18
