@@ -111,26 +111,42 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return depth_1_scores
 
     def compute_best_move(self, game_state: GameState) -> None:
-        # initiate a random valid move, so some move is always returned
-        # this is needed in case our minimax does not finish at least one evaluation to ensure we do not hit a "no move selected"
-        #    as this would instantly lose us the game
+        """
+        Compute the best possible move to be made during the players turn based on the Minimax algorithm
+            using Alpha-Beta pruning.
+        @param game_state: The initial game state to calculate a move on.
+        @return:
+        """
+        # Initiate a random valid move, so some move is always returned.
+        # This is needed in case our minimax does not finish at least one evaluation to ensure we do not hit a "no move selected"
+        #    as this would instantly lose us the game.
         all_moves = self.get_all_moves(game_state)
         proposal = random.choice(all_moves)
+        # Propose the fallback move
         self.propose_move(proposal)
 
-        #introducing a null move to allow for initial call
+        # Introducing a null move to allow for initial call
         nullMove = Move(-1, -1, -1)
-        #while True:
-        #    time.sleep(0.2)
-        #    self.propose_move(random.choice(all_moves))
+
+        # Set the initial starting depth
         depth = 1
+
+        """
+        Initiate a Metadata object to be sent with the original alphabeta() function call, consisting of:
+        - last_move: a null move as initiated above
+        - best_move: the fallback move
+        - best_value: - infinity to ensure any computed move overwrites the fallback.
+        """
         meta = Metadata(nullMove, proposal, -math.inf)
-        while depth <= 4:
-        #initiate a metadata to be sent with the original call, consisting of nullmove, the picked "fallback" move and
-        #  a score of -inf to ensure any computed move is picked during computation to replace it
-        #  Note: as we do not know if this move is an improvement over the random move, this essentially serves as another random move
-        #         but it ensures once again that we do have a selected move, which now is evaluated and to be compared with others
-            game_state.initial_board = game_state.board
+
+        """
+        As the time per turn is undefined and we will be interrupted in a way that our last proposed move is used,
+        we can incrementally increase the depth at which our alphabeta tree is evaluating game states.
+        We do this through a never ending while loop which first computes the best move at some depth, proposes this move
+        and then increments the depth by 1.
+        """
+        while True:
+            #game_state.initial_board = game_state.board TODO: is this needed for anything?
             best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf)
             self.propose_move(best_move)
 
