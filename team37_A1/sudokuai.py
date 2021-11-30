@@ -10,7 +10,8 @@ from copy import deepcopy
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
-from team37_A1.heuristics import move_score, diff_score
+from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections, is_closest
+from team37_A1.metadata import Metadata
 
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -23,11 +24,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
     def check_square(self, game_state, i, j, value):
         """
-        Checks whether a certain value can be inserted in a specific block.
-        @param game_state: The current state of the game
-        @param i: The row position of the entry
-        @param j: The column position of the entry 
-        @param value: The value that we wish to check for
+        Check whether the value inputted by a move in position (i, j) violates the games ruleset.
+        @param game_state: The game state on which to check the moves validity
+        @param i: The row position of the move
+        @param j: The column position of the move
+        @param value: The value to be entered in the moves position (i, j)
+        @return: Whether the value already occurs in the square in which the move occurs
         """
         rows = game_state.board.m
         columns = game_state.board.n
@@ -43,12 +45,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return True
 
     def check_column(self, game_state, N, j, value):
-        """"
-        Checks whether a certain value can be inserted in a specific column.
-        @param game_state: The current state of the game
-        @param N: The dimension of the board
-        @param j: The column that we wish to check
-        @param value: The value that we potentially want to insert
+        """
+        Check whether the value inputted by a move in column position j violates the games ruleset.
+        @param game_state: The game state on which to check the moves validity
+        @param N: The number of rows to check
+        @param j: The column for which to check
+        @param value: The value to be entered in the column
+        @return: Whether the value already occurs in the column
         """
         for p in range(N):
             if game_state.board.get(p, j) == value:
@@ -56,24 +59,18 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return True
 
     def check_row(self, game_state, N, i, value):
-        """"
-        Checks whether a certain value can be inserted in a specific row.
-        @param game_state: The current state of the game
-        @param N: The dimension of the board
-        @param i: The row that we wish to check
-        @param value: The value that we potentially want to insert
+        """
+        Check whether the value inputted by a move in row position i violates the games ruleset.
+        @param game_state: The game state on which to check the moves validity
+        @param N: The number of columns to check
+        @param i: The row for which to check
+        @param value: The value to be entered in the row
+        @return: Whether the value already occurs in the row
         """
         for q in range(N):
             if game_state.board.get(i, q) == value:
                 return False
         return True
-
-    # Check whether a turn is possible:
-    # - the position of the board is non-empty
-    # - the particular value to be inserted in the empty board position is not in the list of taboo moves
-    # (DONE) - the value to be entered is not already included in the section
-    # (DONE) - the value to be entered is not already in the same row
-    # (DONE) - the value to be entered is not already in the same column
 
     def possible_move(self, game_state, i, j, value, rows, columns):
         """
@@ -95,6 +92,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #introw = math.ceil((i + 1) / rows)
         #intcol = math.ceil((j + 1) / columns)
         N = game_state.board.N
+        # Return whether the move violates any of the games rules
         if not (self.check_column(game_state, N, j, value) == self.check_row(game_state, N, i, value) ==
                 self.check_square(game_state, i, j, value) == True):
             return False
@@ -152,158 +150,238 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
     @staticmethod
     def check_random_move(game_state: GameState, all_moves: [Move]):
-        print('IN RANDOM MOVE')
+        #print('IN RANDOM MOVE')
         depth_1_scores = []
         for move in all_moves:
             new_gs = deepcopy(game_state)
             new_gs.board.put(move.i, move.j, move.value)
             depth_1_scores.append(move_score(new_gs.board, move))
-        print('depth_1_scores', depth_1_scores)
+        #print('depth_1_scores', depth_1_scores)
         return depth_1_scores
 
-    def compute_best_move(self, game_state: GameState) -> None:   
-        #all_moves = self.get_all_moves(game_state)
-
-        #while True:
-        #    time.sleep(0.2)
-        #    self.propose_move(random.choice(all_moves))
-        depth = 3
-        # while True:
-        game_state.initial_board = game_state.board
-        self.propose_move(self.alphabeta(game_state, None, True, depth, -math.inf, math.inf)[0])
-
-    #TODO to improve the amount of data passed each time, exchange game_state with a combination of board and all_moves list
-    # update all_moves and board before passing along a new instance for the next call
-    def alphabeta(self, game_state: GameState, last_move: Move, maximizing_player: bool, depth, alpha, beta) -> (Move, int):
-        #get a list of all possible moves using the input gamestate
+    def compute_best_move(self, game_state: GameState) -> None:
+        """
+        Compute the best possible move to be made during the players turn based on the Minimax algorithm
+            using Alpha-Beta pruning.
+        @param game_state: The initial game state to calculate a move on.
+        @return:
+        """
+        # Initiate a random valid move, so some move is always returned.
+        # This is needed in case our minimax does not finish at least one evaluation to ensure we do not hit a "no move selected"
+        #    as this would instantly lose us the game.
         all_moves = self.get_all_moves(game_state)
-        #is this the final level to consider?
+        proposal = random.choice(all_moves)
+        # Propose the fallback move
+        self.propose_move(proposal)
+
+        # Introducing a null move to allow for initial call
+        nullMove = Move(-1, -1, -1)
+
+        # Set the initial starting depth
+        depth = 1
+
+        """
+        Initiate a Metadata object to be sent with the original alphabeta() function call, consisting of:
+        - last_move: a null move as initiated above
+        - best_move: the fallback move
+        - best_value: - infinity to ensure any computed move overwrites the fallback.
+        """
+        meta = Metadata(nullMove, proposal, -math.inf)
+
+        """
+        As the time per turn is undefined and we will be interrupted in a way that our last proposed move is used,
+        we can incrementally increase the depth at which our alphabeta tree is evaluating game states.
+        We do this through a never ending while loop which first computes the best move at some depth, proposes this move
+        and then increments the depth by 1.
+        """
+        while True:
+            #game_state.initial_board = game_state.board TODO: is this needed for anything?
+            best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf)
+            self.propose_move(best_move)
+
+            depth = depth + 1
+
+    def hasEmpty(self, board: SudokuBoard) -> bool:
+        """
+        Check whether there is empty spaces left on the board.
+        @param board: The board to check for empty spaces
+        @return: Whether there is at least one empty space on the input board.
+        """
+        for i in range(board.N):
+            for j in range(board.N):
+                if board.get(i, j) is SudokuBoard.empty:
+                    return True
+        return False
+
+    # TODO: Implement an additional tracker which lets us store and potentially use a deadlock state,
+    #           to adjust which player is taking the final turn of the game (and getting a default 7 points)
+    def alphabeta(self, game_state: GameState, meta: Metadata, maximizing_player: bool, depth, alpha, beta) -> (Move, int, Metadata):
+        """
+        Perform a minimax algorithm using Alpha-Beta pruning.
+        @param game_state: The current game state to consider at the root node of the alphabeta() routine
+        @param meta: The metadata attached to the current routine and turn computation
+        @param maximizing_player: Whether the current routine call concerns the maximizing player
+        @param depth: The maximum depth the routine is supposed to reach
+        @param alpha: The current alpha value to be considered for pruning
+        @param beta: The current beta value to be considered for pruning
+        @return:
+        """
+
+        # Default nullMove for referencing (this ensures that any call with no move is able to be compared with moves it may encounter)
+        nullMove = Move(-1, -1, -1)
+        # Get a list of all possible moves using the input gamestate
+        all_moves = self.get_all_moves(game_state)
+        # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:
-            print('stopping minmax')
-            #TODO: heuristic function to evaluate current board (based on last move)
-            #add a case for original lastmove being NULL on first call (in case depth = 0 is set)
-            return None, diff_score(game_state.scores)
-            return None, 0
-        depth_1_scores = self.check_random_move(game_state, all_moves)
-        if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
-            print('do random move')
-            return random.choice(all_moves), 0
-        else:
-            all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
-        #not the final move, check if maximizing player
+            # Check if the game finished
+            if len(all_moves) == 0:
+                if not self.hasEmpty(game_state.board):
+                    # As we've reach a state we cannot move from any longer so we return the final score of the board
+                    return nullMove, diff_score(game_state.scores), meta
+                else:
+                    # We cannot perform any more moves but the game is not finished, we've hit a deadlock
+                    # We avoid this deadlock path by returning -math.inf as the evaluation
+                    return nullMove, -math.inf, meta
+
+            # Evaluate the leaf node based on the heuristics function "evaluate_state"
+            return nullMove, self.evaluate_state(game_state, meta.last_move), meta
+            #Alternative evaluation method: only consider the game score of the resulting board
+            #return nullMove, diff_score(game_state.scores), meta
+
+        #TODO: is this computation still worth using or do we abandon it?
+        #depth_1_scores = self.check_random_move(game_state, all_moves)
+        # if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
+        #     #print('do random move')
+        #     return random.choice(all_moves), 0
+        # else:
+        #     all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
+        #TODO: end todo
+
+        # Not a leaf node, compute the best option among the sub-trees according to the maximizing_player parameter
         if maximizing_player:
-            print('now maximizing')
-            #start with -infty
+            # Start with -infty
             best_value = -math.inf
+            # Pick a random move to ensure some move will be returned after computation
             best_move = random.choice(all_moves)
+
+            # Compute the best sub-tree each created using one of the possible moves
             for move in all_moves:
-                print('maximizing for move ', move, 'at depth', depth)
-                #update new gamestate
+                # Create a copy of the game_state (to avoid any backward passing problems)
                 new_gs = deepcopy(game_state)
+                # Update the copied game state with the information resulting from the executed move
                 new_gs.board.put(move.i, move.j, move.value)
                 new_gs.moves.append(move)
                 new_gs.taboo_moves = self.update_taboo_moves(new_gs)
+                # Update the scores in the game
                 player_number = 1 if len(game_state.moves) % 2 == 0 else 2
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
-                new_value = max(best_value, self.alphabeta(new_gs, move, False, depth - 1, alpha, beta)[1])
-                print('NEW VALUE ', new_value)
-                # update best move and global value to the new move as long as it is at least as good as the previous best
-                if new_value > best_value:
-                    print('UPDATING MAX BEST MOVE', best_value, new_value)
+                # Update the metadata, note that meta.best_move and meta.best_value did not change (yet)
+                meta.setLast(move)
+                # Compute and compare the evaluation of further subtree's selecting the maximum of the highest found sub-tree and the current sub-tree
+                new_value = max(best_value, self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1])
+
+                # Update best move and global value to the new move as long as it is at least as good as the previous best
+                if new_value >= best_value:
                     best_value = new_value
                     best_move = move
-                # update alpha if allowed to continue
+
+                # Compare the alpha and beta and break off further sub-tree computation if the alphabeta pruning requirement is met
+                if new_value >= beta:
+                    break
+
+                # Update the alpha value
                 alpha = max(alpha, new_value)
-                # compare to beta to check for breakoff
-                if beta <= alpha:
-                    print('BETA BREAK', beta, '<=', alpha)
-                    break
-            #after the loop, return the best move and its associated value
-            return best_move, best_value
+
+                # TODO: check whether this works even at depths lower than the root call depth (likely not)
+                # """
+                # Compare whether the new found move is an improvement over the overall computed proposal.
+                # This can be done as we are exploring sub-trees at the same or a deeper depth than what is stored initially.
+                # As we are in a maximizing step, if the evaluated value of such sub-tree is higher than what is stored,
+                # We are guaranteed to pick a sub-tree at least as good as the current, thus we can update the proposed move
+                # ahead of time, which will last until time runs out or another improvement is found.
+                # @note: we use '>' over '>=' as there is more certainty in the results of sub-trees at a higher depth
+                #         which means that an equal evaluation simply introduces additional risk.
+                # """
+                # if new_value > meta.best_score:
+                #     # Update the metadata being passed along and propose the found move
+                #     meta.set(meta.last_move, move, new_value)
+                #     self.propose_move(move)
+                # TODO: end todo
+
+            # Return the best move found at the root node
+            return best_move, best_value, meta
         else:
-            print('now minimizing')
-            # minimizing player start with infty
+            # This is the minimizing players actions
+
+            # Start with infty
             best_value = math.inf
-            best_move = all_moves[0]
+            # Pick a random move to ensure some move will be returned after computation
+            best_move = random.choice(all_moves)
+
+            # Compute the best sub-tree each created using one of the possible moves
             for move in all_moves:
-                print('minimizing for move ', move, 'at depth', depth)
-                #update new gamestate
+                # Create a copy of the game_state (to avoid any backward passing problems)
                 new_gs = deepcopy(game_state)
+                # Update the copied game state with the information resulting from the executed move
                 new_gs.board.put(move.i, move.j, move.value)
                 new_gs.moves.append(move)
                 new_gs.taboo_moves = self.update_taboo_moves(new_gs)
+                # Update the scores in the game
                 player_number = 1 if len(game_state.moves) % 2 == 0 else 2
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
-                new_value = min(best_value, self.alphabeta(new_gs, move, True, depth - 1, alpha, beta)[1])
+                # Update the metadata, note that meta.best_move and meta.best_value did not change (yet)
+                meta.setLast(move)
+                # Compute and compare the evaluation of further subtree's selecting the minimum of the lowest found sub-tree and the current sub-tree
+                new_value = min(best_value, self.alphabeta(new_gs, meta, True, depth - 1, alpha, beta)[1])
+
+                # Update best move and global value to the new move as long as it is at least as good as the previous best
                 if new_value < best_value:
-                    print('UPDATING MIN BEST MOVE', best_value, new_value)
                     best_value = new_value
                     best_move = move
-                #update beta if allowed to continue
-                beta = min(beta, new_value)
+
                 # compare the alpha to check for breakoff
-                if beta <= alpha:
-                    print('ALPHA BREAK', beta, '<=', alpha)
+                if alpha >= new_value:
+                    #print('ALPHA BREAK', beta, '<=', alpha)
                     break
-                #update best move and global value to the new move as long as it is at least as good as the previous best
-            #after the loop, return the best move and its associated value
-            return best_move, best_value
 
-    def evaluate_board(self, game_state: GameState, last_move: Move) -> int:
-        i, j, value = last_move.i, last_move.j, last_move.value
-        print(game_state.board.__str__)
-        print('evaluating for move ', last_move)
-        N = game_state.board.N
+                # Update the beta value
+                beta = min(beta, new_value)
+            # Return the best move found at the root node
+            return best_move, best_value, meta
 
-        col_score = self.check_column(game_state, N, j, value)
-        row_score = self.check_row(game_state, N, i, value)
-        square_score = self.check_square(game_state, i, j, value)
+    def evaluate_state(self, game_state: GameState, last_move: Move) -> int:
+        """
+        Evaluates the current state of the game.
+        @param game_state: The game state to evaluate
+        @param last_move: The last move made in the sub-tree
+        @return: An evaluation of the input game state
+        """
+        # Use the naive implementation (only the score difference of the resulting board state)
+        naive = True
 
-        move_score = [col_score, row_score, square_score]
-        print('evaluation is', move_score)
-        move_score = move_score.count(False)
+        difference = diff_score(game_state.scores) #how much p1 is ahead of p2 (negative implies behind)
+        score_advantage = difference
 
-        return move_score
+        if not naive:
+            # Check who's turn it is
+            curr_player_number = 1 if len(game_state.moves) % 2 == 0 else 2
+            # Compute whether there are points to be scored by the opponent in the next turn
+            possible_opp_gain = immediate_gain(game_state.board, last_move)
 
-    def evaluate_board_naive(self, board: SudokuBoard, last_move: Move) -> int:
-        if last_move == None:
-            #evaluate naively whether the state of the board is good by counting a score based on the number of filled in slots per section on the board
-            rows_count = board.n
-            cols_count = board.m
-            total_score = 0
-            for r in range(1, rows_count+1):
-                for c in range(1, cols_count+1):
-                    #we're at some section of the board positioned as (r,c) in the bottom right corner
-                    score_section = 0
-                    for p in range(((r - 1) * rows_count), (r * rows_count)):
-                        for q in range(((c - 1) * cols_count), (c * cols_count)):
-                            #we now have a singular number in the section denoted by (r,c) in position (p, q) of the board
-                            if not (board.get(p, q) == SudokuBoard.empty):
-                                score_section = score_section + 1
-                    total_score = total_score + score_section
-            return total_score
-        else:
-            #a move was made
-            #TODO implement more defined heuristic based on recent move
+            # Check whether the game has ended with the last turn
+            if not hasEmpty(game_state.board):
+                # Check whether the resulting score is winning
+                winning = difference >= 0 if curr_player_number == 1 else difference < 0
+                # Update the evaluation based on whether the player is winning
+                if winning:
+                    score_advantage = score_advantage + 10 # if curr_player_number == 1 else score_advantage - 100
+            else:
+                # Otherwise use a combination of the score difference and the possible gain by the opponent (which reduces the score)
+                score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
 
-
-            #TEMPORARY:
-            rows_count = board.n
-            cols_count = board.m
-            total_score = 0
-            for r in range(1, rows_count+1):
-                for c in range(1, cols_count+1):
-                    #were at some section of the board positioned as (r,c) in the bottom right corner
-                    score_section = 0
-                    for p in range(((r - 1) * rows_count), (r * rows_count)):
-                        for q in range(((c - 1) * cols_count), (c * cols_count)):
-                            #we now have a singular number in the section denoted by (r,c) in position (p, q) of the board
-                            if not (board.get(p, q) == SudokuBoard.empty):
-                                score_section = score_section + 1
-                    total_score = total_score + score_section
-            return total_score
-        return 0
-
-
-
+        return score_advantage
+        
+        
+        
+        
 
