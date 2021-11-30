@@ -286,7 +286,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     best_move = move
 
                 # Compare the alpha and beta and break off further sub-tree computation if the alphabeta pruning requirement is met
-                if beta <= alpha:
+                if new_value >= beta:
                     break
 
                 # Update the alpha value
@@ -340,7 +340,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     best_move = move
 
                 # compare the alpha to check for breakoff
-                if beta <= alpha:
+                if alpha >= new_value:
                     #print('ALPHA BREAK', beta, '<=', alpha)
                     break
 
