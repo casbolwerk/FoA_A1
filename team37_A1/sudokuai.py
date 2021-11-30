@@ -137,6 +137,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             depth = depth + 1
 
     def hasEmpty(self, board: SudokuBoard) -> bool:
+        """
+        Check whether there is empty spaces left on the board.
+        @param board: The board to check for empty spaces
+        @return: Whether there is at least one empty space on the input board.
+        """
         for i in range(board.N):
             for j in range(board.N):
                 if board.get(i, j) is SudokuBoard.empty:
