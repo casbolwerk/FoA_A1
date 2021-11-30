@@ -23,6 +23,14 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         super().__init__()
 
     def check_square(self, game_state, i, j, value):
+        """
+        Check whether the value inputted by a move in position (i, j) violates the games ruleset.
+        @param game_state: The game state on which to check the moves validity
+        @param i: The row position of the move
+        @param j: The column position of the move
+        @param value: The value to be entered in the moves position (i, j)
+        @return: Whether the value already occurs in the square in which the move occurs
+        """
         rows = game_state.board.m
         columns = game_state.board.n
         for p in range(((i - 1) * rows), (i * rows)):
@@ -32,29 +40,49 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return True
 
     def check_column(self, game_state, N, j, value):
+        """
+        Check whether the value inputted by a move in column position j violates the games ruleset.
+        @param game_state: The game state on which to check the moves validity
+        @param N: The number of rows to check
+        @param j: The column for which to check
+        @param value: The value to be entered in the column
+        @return: Whether the value already occurs in the column
+        """
         for p in range(N):
             if game_state.board.get(p, j) == value:
                 return False
         return True
 
     def check_row(self, game_state, N, i, value):
+        """
+        Check whether the value inputted by a move in row position i violates the games ruleset.
+        @param game_state: The game state on which to check the moves validity
+        @param N: The number of columns to check
+        @param i: The row for which to check
+        @param value: The value to be entered in the row
+        @return: Whether the value already occurs in the row
+        """
         for q in range(N):
             if game_state.board.get(i, q) == value:
                 return False
         return True
 
-    # Check whether a turn is possible:
-    # - the position of the board is non-empty
-    # - the particular value to be inserted in the empty board position is not in the list of taboo moves
-    # (DONE) - the value to be entered is not already included in the section
-    # (DONE) - the value to be entered is not already in the same row
-    # (DONE) - the value to be entered is not already in the same column
-
     def possible_move(self, game_state, i, j, value, rows, columns):
-        # compute which of the squares on the board the current position is in
+        """
+        Compute whether a move is allowed on the input game_state
+        @param game_state: The game state on which to check the moves validity
+        @param i: The row position of the move to be checked
+        @param j: The column position of the move to be checked
+        @param value: The value associated with the move to be checked
+        @param rows: The number of rows on the board
+        @param columns: The number of columns on the board
+        @return: Whether the move is allowed
+        """
+        # Compute which of the squares on the board the current position is in
         introw = math.ceil((i + 1) / rows)
         intcol = math.ceil((j + 1) / columns)
         N = game_state.board.N
+        # Return whether the move violates any of the games rules
         if not (self.check_column(game_state, N, j, value) == self.check_row(game_state, N, i, value) ==
                 self.check_square(game_state, introw, intcol, value) == True):
             return False
