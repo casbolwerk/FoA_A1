@@ -226,7 +226,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @param beta: The current beta value to be considered for pruning
         @return:
         """
-
         # Default nullMove for referencing (this ensures that any call with no move is able to be compared with moves it may encounter)
         nullMove = Move(-1, -1, -1)
         # Get a list of all possible moves using the input gamestate
@@ -248,14 +247,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             #Alternative evaluation method: only consider the game score of the resulting board
             #return nullMove, diff_score(game_state.scores), meta
 
-        #TODO: is this computation still worth using or do we abandon it?
-        #depth_1_scores = self.check_random_move(game_state, all_moves)
-        # if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
-        #     #print('do random move')
-        #     return random.choice(all_moves), 0
-        # else:
-        #     all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
-        #TODO: end todo
+        depth_1_scores = self.check_random_move(game_state, all_moves)
+        if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
+            #print('do random move')
+            return random.choice(all_moves), 0, meta
+        else:
+            all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
 
         # Not a leaf node, compute the best option among the sub-trees according to the maximizing_player parameter
         if maximizing_player:
