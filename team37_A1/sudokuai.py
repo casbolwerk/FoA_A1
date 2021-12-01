@@ -7,7 +7,6 @@ import time
 import math
 from copy import deepcopy
 
-
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections, is_closest
@@ -88,9 +87,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @param columns: The # of columns (per block)
         @return: Boolean indicating whether the move is possible (=True) or not (=False)
         """
-        # Compute which of the squares (or blocks) on the board the current position is in:
-        #introw = math.ceil((i + 1) / rows)
-        #intcol = math.ceil((j + 1) / columns)
         N = game_state.board.N
         # Return whether the move violates any of the games rules
         if not (self.check_column(game_state, N, j, value) == self.check_row(game_state, N, i, value) ==
@@ -111,6 +107,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         rows = game_state.board.m
         columns = game_state.board.n
 
+        # Selects only those moves which do not violate the rules
         all_moves = [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if
                      self.possible_move(game_state, i, j, value, rows, columns)]
 
@@ -150,13 +147,17 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
     @staticmethod
     def check_random_move(game_state: GameState, all_moves: [Move]):
-        #print('IN RANDOM MOVE')
+        """
+        Compute the game state scores resulting from all first moves from the input game state.
+        @param game_state: The game state to start computation on
+        @param all_moves: The set of all possible moves to attempt
+        @return: A list of scores that can be gained from all moves in the input all_moves
+        """
         depth_1_scores = []
         for move in all_moves:
             new_gs = deepcopy(game_state)
             new_gs.board.put(move.i, move.j, move.value)
             depth_1_scores.append(move_score(new_gs.board, move))
-        #print('depth_1_scores', depth_1_scores)
         return depth_1_scores
 
     def compute_best_move(self, game_state: GameState) -> None:
@@ -288,22 +289,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
                 # Update the alpha value
                 alpha = max(alpha, new_value)
-
-                # TODO: check whether this works even at depths lower than the root call depth (likely not)
-                # """
-                # Compare whether the new found move is an improvement over the overall computed proposal.
-                # This can be done as we are exploring sub-trees at the same or a deeper depth than what is stored initially.
-                # As we are in a maximizing step, if the evaluated value of such sub-tree is higher than what is stored,
-                # We are guaranteed to pick a sub-tree at least as good as the current, thus we can update the proposed move
-                # ahead of time, which will last until time runs out or another improvement is found.
-                # @note: we use '>' over '>=' as there is more certainty in the results of sub-trees at a higher depth
-                #         which means that an equal evaluation simply introduces additional risk.
-                # """
-                # if new_value > meta.best_score:
-                #     # Update the metadata being passed along and propose the found move
-                #     meta.set(meta.last_move, move, new_value)
-                #     self.propose_move(move)
-                # TODO: end todo
 
             # Return the best move found at the root node
             return best_move, best_value, meta
