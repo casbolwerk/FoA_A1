@@ -194,7 +194,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         and then increments the depth by 1.
         """
         while True:
-            #game_state.initial_board = game_state.board TODO: is this needed for anything?
             best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf)
             self.propose_move(best_move)
 
