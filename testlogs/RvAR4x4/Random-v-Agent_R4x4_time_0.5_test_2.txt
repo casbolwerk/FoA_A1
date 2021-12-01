@@ -1,0 +1,674 @@
+Initial state
+-----------------------------
+Calculate a move for player 1
+Best move: (1,14) -> 5
+-----------------------------
+Calculate a move for player 2
+Best move: (0,3) -> 5
+-----------------------------
+Calculate a move for player 1
+Best move: (8,3) -> 3
+-----------------------------
+Calculate a move for player 2
+Best move: (0,0) -> 15
+The sudoku has no solution after the move (0,0) -> 15.
+-----------------------------
+Calculate a move for player 1
+Best move: (9,8) -> 2
+-----------------------------
+Calculate a move for player 2
+Best move: (15,2) -> 9
+The sudoku has no solution after the move (15,2) -> 9.
+-----------------------------
+Calculate a move for player 1
+Best move: (2,14) -> 3
+The sudoku has no solution after the move (2,14) -> 3.
+-----------------------------
+Calculate a move for player 2
+Best move: (6,6) -> 2
+The sudoku has no solution after the move (6,6) -> 2.
+-----------------------------
+Calculate a move for player 1
+Best move: (4,8) -> 9
+The sudoku has no solution after the move (4,8) -> 9.
+-----------------------------
+Calculate a move for player 2
+Best move: (1,2) -> 2
+The sudoku has no solution after the move (1,2) -> 2.
+-----------------------------
+Calculate a move for player 1
+Best move: (6,10) -> 12
+The sudoku has no solution after the move (6,10) -> 12.
+-----------------------------
+Calculate a move for player 2
+Best move: (2,4) -> 6
+-----------------------------
+Calculate a move for player 1
+Best move: (14,6) -> 11
+-----------------------------
+Calculate a move for player 2
+Best move: (15,15) -> 2
+-----------------------------
+Calculate a move for player 1
+Best move: (12,14) -> 11
+The sudoku has no solution after the move (12,14) -> 11.
+-----------------------------
+Calculate a move for player 2
+Best move: (11,9) -> 16
+The sudoku has no solution after the move (11,9) -> 16.
+-----------------------------
+Calculate a move for player 1
+Best move: (12,1) -> 11
+The sudoku has no solution after the move (12,1) -> 11.
+-----------------------------
+Calculate a move for player 2
+Best move: (0,14) -> 15
+-----------------------------
+Calculate a move for player 1
+Best move: (15,14) -> 9
+The sudoku has no solution after the move (15,14) -> 9.
+-----------------------------
+Calculate a move for player 2
+Best move: (12,1) -> 16
+The sudoku has no solution after the move (12,1) -> 16.
+-----------------------------
+Calculate a move for player 1
+Best move: (13,1) -> 9
+The sudoku has no solution after the move (13,1) -> 9.
+-----------------------------
+Calculate a move for player 2
+Best move: (1,8) -> 16
+-----------------------------
+Calculate a move for player 1
+Best move: (13,6) -> 6
+The sudoku has no solution after the move (13,6) -> 6.
+-----------------------------
+Calculate a move for player 2
+Best move: (14,2) -> 16
+The sudoku has no solution after the move (14,2) -> 16.
+-----------------------------
+Calculate a move for player 1
+Best move: (13,15) -> 16
+The sudoku has no solution after the move (13,15) -> 16.
+-----------------------------
+Calculate a move for player 2
+Best move: (14,4) -> 8
+The sudoku has no solution after the move (14,4) -> 8.
+-----------------------------
+Calculate a move for player 1
+Best move: (2,14) -> 11
+-----------------------------
+Calculate a move for player 2
+Best move: (2,3) -> 4
+The sudoku has no solution after the move (2,3) -> 4.
+-----------------------------
+Calculate a move for player 1
+Best move: (9,11) -> 13
+-----------------------------
+Calculate a move for player 2
+Best move: (2,13) -> 16
+-----------------------------
+Calculate a move for player 1
+Best move: (15,3) -> 1
+The sudoku has no solution after the move (15,3) -> 1.
+-----------------------------
+Calculate a move for player 2
+Best move: (12,0) -> 16
+The sudoku has no solution after the move (12,0) -> 16.
+-----------------------------
+Calculate a move for player 1
+Best move: (1,9) -> 3
+The sudoku has no solution after the move (1,9) -> 3.
+-----------------------------
+Calculate a move for player 2
+Best move: (5,10) -> 4
+The sudoku has no solution after the move (5,10) -> 4.
+-----------------------------
+Calculate a move for player 1
+Best move: (1,0) -> 2
+-----------------------------
+Calculate a move for player 2
+Best move: (0,8) -> 8
+The sudoku has no solution after the move (0,8) -> 8.
+-----------------------------
+Calculate a move for player 1
+Best move: (14,2) -> 5
+The sudoku has no solution after the move (14,2) -> 5.
+-----------------------------
+Calculate a move for player 2
+Best move: (15,6) -> 6
+-----------------------------
+Calculate a move for player 1
+Best move: (12,8) -> 9
+The sudoku has no solution after the move (12,8) -> 9.
+-----------------------------
+Calculate a move for player 2
+Best move: (3,14) -> 13
+-----------------------------
+Calculate a move for player 1
+Best move: (15,14) -> 1
+The sudoku has no solution after the move (15,14) -> 1.
+-----------------------------
+Calculate a move for player 2
+Best move: (15,1) -> 11
+-----------------------------
+Calculate a move for player 1
+Best move: (9,0) -> 5
+-----------------------------
+Calculate a move for player 2
+Best move: (14,9) -> 9
+The sudoku has no solution after the move (14,9) -> 9.
+-----------------------------
+Calculate a move for player 1
+Best move: (11,2) -> 7
+-----------------------------
+Calculate a move for player 2
+Best move: (6,10) -> 16
+The sudoku has no solution after the move (6,10) -> 16.
+-----------------------------
+Calculate a move for player 1
+Best move: (12,2) -> 5
+The sudoku has no solution after the move (12,2) -> 5.
+-----------------------------
+Calculate a move for player 2
+Best move: (14,9) -> 8
+The sudoku has no solution after the move (14,9) -> 8.
+-----------------------------
+Calculate a move for player 1
+Best move: (3,3) -> 9
+The sudoku has no solution after the move (3,3) -> 9.
+-----------------------------
+Calculate a move for player 2
+Best move: (13,12) -> 5
+The sudoku has no solution after the move (13,12) -> 5.
+-----------------------------
+Calculate a move for player 1
+Best move: (4,8) -> 6
+-----------------------------
+Calculate a move for player 2
+Best move: (14,3) -> 12
+The sudoku has no solution after the move (14,3) -> 12.
+-----------------------------
+Calculate a move for player 1
+Best move: (10,9) -> 7
+-----------------------------
+Calculate a move for player 2
+Best move: (3,0) -> 9
+The sudoku has no solution after the move (3,0) -> 9.
+-----------------------------
+Calculate a move for player 1
+Best move: (13,15) -> 12
+The sudoku has no solution after the move (13,15) -> 12.
+-----------------------------
+Calculate a move for player 2
+Best move: (13,0) -> 9
+The sudoku has no solution after the move (13,0) -> 9.
+-----------------------------
+Calculate a move for player 1
+Best move: (12,4) -> 3
+The sudoku has no solution after the move (12,4) -> 3.
+-----------------------------
+Calculate a move for player 2
+Best move: (13,9) -> 3
+The sudoku has no solution after the move (13,9) -> 3.
+-----------------------------
+Calculate a move for player 1
+Best move: (15,3) -> 9
+-----------------------------
+Calculate a move for player 2
+Best move: (7,12) -> 5
+-----------------------------
+Calculate a move for player 1
+Best move: (12,0) -> 4
+-----------------------------
+Calculate a move for player 2
+Best move: (14,12) -> 12
+The sudoku has no solution after the move (14,12) -> 12.
+-----------------------------
+Calculate a move for player 1
+Best move: (14,15) -> 16
+The sudoku has no solution after the move (14,15) -> 16.
+-----------------------------
+Calculate a move for player 2
+Best move: (6,6) -> 13
+The sudoku has no solution after the move (6,6) -> 13.
+-----------------------------
+Calculate a move for player 1
+Best move: (0,15) -> 8
+-----------------------------
+Calculate a move for player 2
+Best move: (12,14) -> 16
+The sudoku has no solution after the move (12,14) -> 16.
+-----------------------------
+Calculate a move for player 1
+Best move: (14,5) -> 9
+-----------------------------
+Calculate a move for player 2
+Best move: (9,4) -> 16
+-----------------------------
+Calculate a move for player 1
+Best move: (7,11) -> 11
+The sudoku has no solution after the move (7,11) -> 11.
+-----------------------------
+Calculate a move for player 2
+Best move: (0,6) -> 3
+The sudoku has no solution after the move (0,6) -> 3.
+-----------------------------
+Calculate a move for player 1
+Best move: (10,8) -> 5
+-----------------------------
+Calculate a move for player 2
+Best move: (1,2) -> 9
+The sudoku has no solution after the move (1,2) -> 9.
+-----------------------------
+Calculate a move for player 1
+Best move: (4,9) -> 9
+-----------------------------
+Calculate a move for player 2
+Best move: (10,11) -> 11
+-----------------------------
+Calculate a move for player 1
+Best move: (1,4) -> 3
+The sudoku has no solution after the move (1,4) -> 3.
+-----------------------------
+Calculate a move for player 2
+Best move: (6,10) -> 4
+-----------------------------
+Calculate a move for player 1
+Best move: (2,5) -> 1
+-----------------------------
+Calculate a move for player 2
+Best move: (0,8) -> 10
+-----------------------------
+Calculate a move for player 1
+Best move: (7,3) -> 4
+-----------------------------
+Calculate a move for player 2
+Best move: (14,15) -> 5
+The sudoku has no solution after the move (14,15) -> 5.
+-----------------------------
+Calculate a move for player 1
+Best move: (11,15) -> 16
+-----------------------------
+Calculate a move for player 2
+Best move: (1,7) -> 9
+-----------------------------
+Calculate a move for player 1
+Best move: (2,15) -> 12
+The sudoku has no solution after the move (2,15) -> 12.
+-----------------------------
+Calculate a move for player 2
+Best move: (11,1) -> 6
+The sudoku has no solution after the move (11,1) -> 6.
+-----------------------------
+Calculate a move for player 1
+Best move: (12,12) -> 1
+The sudoku has no solution after the move (12,12) -> 1.
+-----------------------------
+Calculate a move for player 2
+Best move: (2,3) -> 12
+-----------------------------
+Calculate a move for player 1
+Best move: (14,8) -> 8
+The sudoku has no solution after the move (14,8) -> 8.
+-----------------------------
+Calculate a move for player 2
+Best move: (14,10) -> 15
+-----------------------------
+Calculate a move for player 1
+Best move: (13,11) -> 1
+The sudoku has no solution after the move (13,11) -> 1.
+-----------------------------
+Calculate a move for player 2
+Best move: (7,5) -> 2
+-----------------------------
+Calculate a move for player 1
+Best move: (5,10) -> 16
+-----------------------------
+Calculate a move for player 2
+Best move: (7,14) -> 16
+The sudoku has no solution after the move (7,14) -> 16.
+-----------------------------
+Calculate a move for player 1
+Best move: (14,8) -> 7
+-----------------------------
+Calculate a move for player 2
+Best move: (5,15) -> 12
+The sudoku has no solution after the move (5,15) -> 12.
+-----------------------------
+Calculate a move for player 1
+Best move: (8,10) -> 12
+-----------------------------
+Calculate a move for player 2
+Best move: (7,14) -> 3
+-----------------------------
+Calculate a move for player 1
+Best move: (13,9) -> 8
+The sudoku has no solution after the move (13,9) -> 8.
+-----------------------------
+Calculate a move for player 2
+Best move: (3,1) -> 1
+The sudoku has no solution after the move (3,1) -> 1.
+-----------------------------
+Calculate a move for player 1
+Best move: (13,0) -> 16
+The sudoku has no solution after the move (13,0) -> 16.
+-----------------------------
+Calculate a move for player 2
+Best move: (11,8) -> 8
+-----------------------------
+Calculate a move for player 1
+Best move: (3,1) -> 16
+The sudoku has no solution after the move (3,1) -> 16.
+-----------------------------
+Calculate a move for player 2
+Best move: (8,11) -> 16
+-----------------------------
+Calculate a move for player 1
+Best move: (11,9) -> 3
+-----------------------------
+Calculate a move for player 2
+Best move: (10,6) -> 10
+-----------------------------
+Calculate a move for player 1
+Best move: (2,2) -> 4
+-----------------------------
+Calculate a move for player 2
+Best move: (12,2) -> 16
+-----------------------------
+Calculate a move for player 1
+Best move: (13,6) -> 2
+The sudoku has no solution after the move (13,6) -> 2.
+-----------------------------
+Calculate a move for player 2
+Best move: (4,14) -> 1
+-----------------------------
+Calculate a move for player 1
+Best move: (8,6) -> 13
+The sudoku has no solution after the move (8,6) -> 13.
+-----------------------------
+Calculate a move for player 2
+Best move: (5,4) -> 8
+The sudoku has no solution after the move (5,4) -> 8.
+-----------------------------
+Calculate a move for player 1
+Best move: (1,9) -> 11
+-----------------------------
+Calculate a move for player 2
+Best move: (6,4) -> 7
+-----------------------------
+Calculate a move for player 1
+Best move: (1,11) -> 3
+-----------------------------
+Calculate a move for player 2
+Best move: (15,11) -> 5
+The sudoku has no solution after the move (15,11) -> 5.
+-----------------------------
+Calculate a move for player 1
+Best move: (2,8) -> 13
+-----------------------------
+Calculate a move for player 2
+Best move: (12,8) -> 3
+-----------------------------
+Calculate a move for player 1
+Best move: (3,3) -> 1
+-----------------------------
+Calculate a move for player 2
+Best move: (10,2) -> 9
+-----------------------------
+Calculate a move for player 1
+Best move: (4,0) -> 15
+The sudoku has no solution after the move (4,0) -> 15.
+-----------------------------
+Calculate a move for player 2
+Best move: (13,12) -> 1
+-----------------------------
+Calculate a move for player 1
+Best move: (12,15) -> 5
+-----------------------------
+Calculate a move for player 2
+Best move: (5,6) -> 13
+The sudoku has no solution after the move (5,6) -> 13.
+-----------------------------
+Calculate a move for player 1
+Best move: (3,7) -> 16
+-----------------------------
+Calculate a move for player 2
+Best move: (5,6) -> 9
+The sudoku has no solution after the move (5,6) -> 9.
+-----------------------------
+Calculate a move for player 1
+Best move: (13,14) -> 16
+The sudoku has no solution after the move (13,14) -> 16.
+-----------------------------
+Calculate a move for player 2
+Best move: (6,14) -> 2
+The sudoku has no solution after the move (6,14) -> 2.
+-----------------------------
+Calculate a move for player 1
+Best move: (3,12) -> 4
+-----------------------------
+Calculate a move for player 2
+Best move: (5,7) -> 4
+-----------------------------
+Calculate a move for player 1
+Best move: (5,5) -> 8
+The sudoku has no solution after the move (5,5) -> 8.
+-----------------------------
+Calculate a move for player 2
+Best move: (9,1) -> 14
+-----------------------------
+Calculate a move for player 1
+Best move: (3,10) -> 8
+-----------------------------
+Calculate a move for player 2
+Best move: (1,4) -> 14
+The sudoku has no solution after the move (1,4) -> 14.
+-----------------------------
+Calculate a move for player 1
+Best move: (1,5) -> 8
+The sudoku has no solution after the move (1,5) -> 8.
+-----------------------------
+Calculate a move for player 2
+Best move: (2,15) -> 3
+-----------------------------
+Calculate a move for player 1
+Best move: (13,6) -> 8
+The sudoku has no solution after the move (13,6) -> 8.
+-----------------------------
+Calculate a move for player 2
+Best move: (14,12) -> 16
+-----------------------------
+Calculate a move for player 1
+Best move: (5,8) -> 12
+-----------------------------
+Calculate a move for player 2
+Best move: (6,2) -> 13
+-----------------------------
+Calculate a move for player 1
+Best move: (8,0) -> 13
+-----------------------------
+Calculate a move for player 2
+Best move: (14,3) -> 8
+-----------------------------
+Calculate a move for player 1
+Best move: (14,9) -> 14
+-----------------------------
+Calculate a move for player 2
+Best move: (6,13) -> 12
+-----------------------------
+Calculate a move for player 1
+Best move: (7,0) -> 16
+The sudoku has no solution after the move (7,0) -> 16.
+-----------------------------
+Calculate a move for player 2
+Best move: (1,5) -> 10
+-----------------------------
+Calculate a move for player 1
+Best move: (12,12) -> 11
+-----------------------------
+Calculate a move for player 2
+Best move: (10,13) -> 1
+-----------------------------
+Calculate a move for player 1
+Best move: (2,7) -> 14
+-----------------------------
+Calculate a move for player 2
+Best move: (13,11) -> 5
+-----------------------------
+Calculate a move for player 1
+Best move: (11,1) -> 2
+-----------------------------
+Calculate a move for player 2
+Best move: (13,7) -> 2
+-----------------------------
+Calculate a move for player 1
+Best move: (15,14) -> 7
+-----------------------------
+Calculate a move for player 2
+Best move: (1,12) -> 12
+-----------------------------
+Calculate a move for player 1
+Best move: (13,6) -> 3
+-----------------------------
+Calculate a move for player 2
+Best move: (0,2) -> 6
+-----------------------------
+Calculate a move for player 1
+Best move: (13,8) -> 9
+-----------------------------
+Calculate a move for player 2
+Best move: (8,6) -> 14
+-----------------------------
+Calculate a move for player 1
+Best move: (11,3) -> 6
+-----------------------------
+Calculate a move for player 2
+Best move: (6,14) -> 16
+-----------------------------
+Calculate a move for player 1
+Best move: (11,6) -> 13
+-----------------------------
+Calculate a move for player 2
+Best move: (12,1) -> 1
+-----------------------------
+Calculate a move for player 1
+Best move: (5,6) -> 8
+-----------------------------
+Calculate a move for player 2
+Best move: (1,4) -> 8
+-----------------------------
+Calculate a move for player 1
+Best move: (7,8) -> 11
+-----------------------------
+Calculate a move for player 2
+Best move: (15,11) -> 1
+-----------------------------
+Calculate a move for player 1
+Best move: (14,15) -> 12
+-----------------------------
+Calculate a move for player 2
+Best move: (6,6) -> 9
+-----------------------------
+Calculate a move for player 1
+Best move: (3,0) -> 11
+-----------------------------
+Calculate a move for player 2
+Best move: (14,4) -> 5
+-----------------------------
+Calculate a move for player 1
+Best move: (1,1) -> 15
+-----------------------------
+Calculate a move for player 2
+Best move: (4,0) -> 7
+-----------------------------
+Calculate a move for player 1
+Best move: (14,2) -> 2
+-----------------------------
+Calculate a move for player 2
+Best move: (12,14) -> 9
+-----------------------------
+Calculate a move for player 1
+Best move: (0,4) -> 3
+-----------------------------
+Calculate a move for player 2
+Best move: (13,5) -> 8
+-----------------------------
+Calculate a move for player 1
+Best move: (5,14) -> 2
+-----------------------------
+Calculate a move for player 2
+Best move: (5,4) -> 13
+-----------------------------
+Calculate a move for player 1
+Best move: (5,15) -> 6
+-----------------------------
+Calculate a move for player 2
+Best move: (7,11) -> 14
+-----------------------------
+Calculate a move for player 1
+Best move: (5,0) -> 9
+-----------------------------
+Calculate a move for player 2
+Best move: (13,15) -> 13
+-----------------------------
+Calculate a move for player 1
+Best move: (5,5) -> 5
+-----------------------------
+Calculate a move for player 2
+Best move: (8,12) -> 6
+-----------------------------
+Calculate a move for player 1
+Best move: (13,9) -> 16
+-----------------------------
+Calculate a move for player 2
+Best move: (0,10) -> 1
+-----------------------------
+Calculate a move for player 1
+Best move: (15,2) -> 5
+-----------------------------
+Calculate a move for player 2
+Best move: (6,11) -> 2
+-----------------------------
+Calculate a move for player 1
+Best move: (13,1) -> 6
+-----------------------------
+Calculate a move for player 2
+Best move: (15,9) -> 8
+-----------------------------
+Calculate a move for player 1
+Best move: (0,0) -> 16
+-----------------------------
+Calculate a move for player 2
+Best move: (13,14) -> 10
+-----------------------------
+Calculate a move for player 1
+Best move: (7,1) -> 16
+-----------------------------
+Calculate a move for player 2
+Best move: (13,0) -> 12
+-----------------------------
+Calculate a move for player 1
+Best move: (4,12) -> 15
+-----------------------------
+Calculate a move for player 2
+Best move: (12,4) -> 14
+-----------------------------
+Calculate a move for player 1
+Best move: (7,0) -> 15
+-----------------------------
+Calculate a move for player 2
+Best move: (10,14) -> 4
+-----------------------------
+Calculate a move for player 1
+Best move: (2,11) -> 9
+-----------------------------
+Calculate a move for player 2
+Best move: (3,1) -> 9
+-----------------------------
+Calculate a move for player 1
+Best move: (0,6) -> 2
+-----------------------------
+Calculate a move for player 2
+Best move: (1,2) -> 14
+Player 2 wins the game.

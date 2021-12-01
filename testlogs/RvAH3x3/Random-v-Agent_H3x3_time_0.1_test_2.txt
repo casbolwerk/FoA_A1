@@ -1,0 +1,5 @@
+Initial state
+-----------------------------
+Calculate a move for player 1
+Best move: (0,0) -> 0
+No move was supplied. Player 2 wins the game.
