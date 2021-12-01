@@ -12,12 +12,10 @@ import competitive_sudoku.sudokuai
 from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections
 from team37_A1.metadata import Metadata
 
-
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
     Sudoku AI that computes a move for a given sudoku configuration.
     """
-
     def __init__(self):
         super().__init__()
 
@@ -351,7 +349,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             possible_opp_gain = immediate_gain(game_state.board, last_move)
 
             # Check whether the game has ended with the last turn
-            if not hasEmpty(game_state.board):
+            if not self.hasEmpty(game_state.board):
                 # Check whether the resulting score is winning
                 winning = difference >= 0 if curr_player_number == 1 else difference < 0
                 # Update the evaluation based on whether the player is winning
