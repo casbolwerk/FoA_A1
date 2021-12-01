@@ -1,10 +1,15 @@
 import math
 
-
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 
-
 def completes_square(board, i, j):
+    """
+    Calculate whether the move to position (i, j) on the board completes its square
+    @param board: The board, including the filled entry in (i, j)
+    @param i: The row position of the to check entry
+    @param j: The column position of the to check entry
+    @return: Whether the square the entry is in is now completed
+    """
     rows = board.m
     columns = board.n
     introw = math.ceil((i + 1) / rows)
@@ -15,15 +20,27 @@ def completes_square(board, i, j):
                 return False
     return True
 
-
 def completes_col(board, N, j):
+    """
+    Calculate whether the move to position (i, j) on the board completes its column
+    @param board: The board, including the filled entry in (i, j)
+    @param i: The row position of the to check entry
+    @param j: The column position of the to check entry
+    @return: Whether the column the entry is in is now completed
+    """
     for p in range(N):
         if board.get(p, j) is SudokuBoard.empty:
             return False
     return True
 
-
 def completes_row(board, N, i):
+    """
+    Calculate whether the move to position (i, j) on the board completes its row
+    @param board: The board, including the filled entry in (i, j)
+    @param i: The row position of the to check entry
+    @param j: The column position of the to check entry
+    @return: Whether the row the entry is in is now completed
+    """
     for q in range(N):
         if board.get(i, q) is SudokuBoard.empty:
             return False
@@ -42,12 +59,17 @@ def move_score(board: SudokuBoard, move: Move):
 
     move_score = completes.count(True)
     scores = [0,1,3,7]
-    #print('SCORE ADDED', scores[move_score])
 
     return scores[move_score]
 
-    #return the number of empty squares in the row including the most recent move
 def leaves_row(board, N, i) -> int:
+    """
+    Compute the number of empty squares in the row i.
+    @param board: The current board
+    @param N: The number of column options to check
+    @param i: The row in which to check
+    @return: The number of empty squares in row i
+    """
     count = 0
     for q in range(N):
         if board.get(i, q) is SudokuBoard.empty:
@@ -56,6 +78,13 @@ def leaves_row(board, N, i) -> int:
 
     #return the number of empty squares in the column including the most recent move
 def leaves_col(board, N, j) -> int:
+    """
+    Compute the number of empty squares in the column j.
+    @param board: The current board
+    @param N: The number of row options to check
+    @param j: The column in which to check
+    @return: The number of empty squares in the column j
+    """
     count = 0
     for p in range(N):
         if board.get(p, j) is SudokuBoard.empty:
@@ -64,6 +93,13 @@ def leaves_col(board, N, j) -> int:
 
     #return the number of empty squares in the region including the most recent move
 def leaves_square(board, i, j) -> int:
+    """
+    Compute the number of empty squares in the region containing entry (i, j).
+    @param board: The current board
+    @param i: The row position to check for
+    @param j: The column position to check for
+    @return: The number of empty squares in the section in which entry (i, j) is located
+    """
     count = 0
     rows = board.m
     columns = board.n
@@ -77,10 +113,10 @@ def leaves_square(board, i, j) -> int:
 
 def immediate_gain(board: SudokuBoard, move: Move) -> int:
     """
-    Calculate the score that can immediately be obtained by a move in the next turn
-    @param board:
-    @param move:
-    @return:
+    Calculate the score that can immediately be obtained by a move in the next turn.
+    @param board: The current board
+    @param move: The move to be performed
+    @return: The amount of points gained as a result from the move on the provided board
     """
     i, j = move.i, move.j
     N = board.N
@@ -88,37 +124,25 @@ def immediate_gain(board: SudokuBoard, move: Move) -> int:
 
     move_score = leaves.count(True)
     scores = [0, 1, 3, 7]
-    # print('SCORE ADDED', scores[move_score])
 
     return scores[move_score]
 
 def prepares_sections(board: SudokuBoard, move: Move):
+    """
+    Check whether the provided move leaves a section on the board 2 turns from complete.
+    @param board: The current board
+    @param move: The move to check for
+    @return: How many sections the move leaves with 2 turns from completion
+    """
     i, j = move.i, move.j
     N = board.N
     prepared = [leaves_square(board, i, j) == 2, leaves_col(board, N, j) == 2, leaves_row(board, N, i) == 2]
     return prepared.count(True)
 
-def is_closest(board: SudokuBoard, move: Move):
-    i, j = move.i, move.j
-    fullest_square = 0
-    fullest_col = 0
-    fullest_row = 0
-    for i in range(board.N):
-        row = leaves_row(board, board.N, i)
-        if row >= 3:
-            fullest_row = max(fullest_row, row)
-        for j in range(board.N):
-            col = leaves_col(board, board.N, j)
-            if col >= 3:
-                fullest_col = max(fullest_col, col)
-            square = leaves_square(board, i, j)
-            if square >= 3:
-                fullest_square = max(square, fullest_square)
-    # fullest_square = max([leaves_square(board, i, j) for i in range(board.N) and j in range(board.N) if (leaves_square(board, i, j) > 2)])
-    # fullest_col = max([leaves_col(board, board.N, j) for j in range(board.N) if leaves_col(board, board.N, j) > 2])
-    # fullest_row = max([leaves_row(board, board.N, i) for i in range(board.N) if leaves_row(board, board.N, i) > 2])
-
-    return [leaves_square(board, move.i, move.j) == fullest_square, leaves_col(board, board.N, move.j) == fullest_col, leaves_row(board, board.N, move.i) == fullest_row]
-
 def diff_score(scores) -> int:
+    """
+    Compute the difference in score between player 1 and player 2.
+    @param scores: The list of scores (size = 2)
+    @return: The difference between the scores in the input list
+    """
     return scores[0] - scores[1]

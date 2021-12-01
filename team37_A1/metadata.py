@@ -1,8 +1,6 @@
 import math
 
-
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
-
 
 class Metadata(object):
     """A Metadata object is a tuple (last_move, best_move, best_score) that represents some global and local information
