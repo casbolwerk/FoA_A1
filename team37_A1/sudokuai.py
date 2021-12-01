@@ -211,8 +211,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     return True
         return False
 
-    # TODO: Implement an additional tracker which lets us store and potentially use a deadlock state,
-    #           to adjust which player is taking the final turn of the game (and getting a default 7 points)
     def alphabeta(self, game_state: GameState, meta: Metadata, maximizing_player: bool, depth, alpha, beta) -> (Move, int, Metadata):
         """
         Perform a minimax algorithm using Alpha-Beta pruning.
@@ -242,12 +240,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
             # Evaluate the leaf node based on the heuristics function "evaluate_state"
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
-            #Alternative evaluation method: only consider the game score of the resulting board
-            #return nullMove, diff_score(game_state.scores), meta
 
         depth_1_scores = self.check_random_move(game_state, all_moves)
         if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
-            #print('do random move')
             return random.choice(all_moves), 0, meta
         else:
             all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
@@ -348,7 +343,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             possible_opp_gain = immediate_gain(game_state.board, last_move)
 
             # Check whether the game has ended with the last turn
-            if not self.hasEmpty(game_state.board):
+            if not hasEmpty(game_state.board):
                 # Check whether the resulting score is winning
                 winning = difference >= 0 if curr_player_number == 1 else difference < 0
                 # Update the evaluation based on whether the player is winning
