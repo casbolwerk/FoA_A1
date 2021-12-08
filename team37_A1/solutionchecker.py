@@ -3,9 +3,11 @@ import math
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 
 def solvable_column(board: SudokuBoard, j: int):
+    rows = board.n
+    columns = board.m
     # for each empty entry in the column, check that at least one of the remaining (required) numbers still fits
     # the total entries required
-    total = [i for i in range(board.N)]
+    total = [i for i in range(1, board.N+1)]
     # the filled in entries
     filled = []
     # get the already filled numbers
@@ -37,10 +39,37 @@ def solvable_column(board: SudokuBoard, j: int):
     return True
 
 def solvable_row(board: SudokuBoard, i: int):
-    return False
+    rows = board.n
+    columns = board.m
+
+    total = [i for i in range(1, board.N+1)]
+
+    filled = []
+    for p in range(N):
+        if not board.get(i, p) is SudokuBoard.empty:
+            filled.append(board.get(i, p))
+    required = [i for i in total if i not in filled]
+
+    for p in range(N):
+        if board.get(i, p) is SudokuBoard.empty:
+            square_numbers = []
+            introw = math.ceil((i+1) / rows)
+            intcol = math.ceil((p+1) / columns)
+            for k in range(((introw - 1) * rows), (introw * rows)):
+                for l in range(((intcol - 1) * columns), (intcol * columns)):
+                    if not board.get(k, l) is SudokuBoard.empty:
+                        square_numbers.append(board.get(k, l))
+            column_numbers = []
+            for k in range(N):
+                if not board.get(k, p) is SudokuBoard.empty:
+                    column_numbers.append(board.get(k, p))
+            remainder = [i for i in required if i not in column_numbers and i not in square_numbers]
+            if len(remainder) == 0:
+                return False
+    return True
 
 def solvable_square(board: SudokuBoard, i: int, j: int):
     return False
 
-def remains_solvable(move: Move):
+def remains_solvable(board: SudokuBoard, move: Move):
     return False
