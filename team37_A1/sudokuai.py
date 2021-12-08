@@ -9,7 +9,8 @@ from copy import deepcopy
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
-from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections, single_possibility_sudoku_rule
+from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections, \
+                                 single_possibility_sudoku_rule, all_possibilities
 from team37_A1.metadata import Metadata
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -158,6 +159,28 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             depth_1_scores.append(move_score(new_gs.board, move))
         return depth_1_scores
 
+    def determine_game_stage(self, game_state: GameState, all_moves: [Move], meta: Metadata) -> [Move]:
+        # Get a list of all moves that are certainly right
+        single_possibility = single_possibility_sudoku_rule(game_state)
+        if not single_possibility:
+            # Still in the early game
+            # Get list of possible moves, sorted by possible values in the squares
+            possible_moves = all_possibilities(game_state)
+            final_index = min(10, len(possible_moves))
+            # TODO make all_possibilities return moves instead of just squares and their number of poss.
+            # all_moves = list(possible_moves[:final_index].keys())
+
+            # depth_1_scores = self.check_random_move(game_state, all_moves)
+            # if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
+            #     return random.choice(all_moves), 0, meta
+            # else:
+            #     all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
+        else:
+            # End game stage
+            all_moves = single_possibility
+
+        return all_moves
+
     def compute_best_move(self, game_state: GameState) -> None:
         """
         Compute the best possible move to be made during the players turn based on the Minimax algorithm
@@ -224,8 +247,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
         # Default nullMove for referencing (this ensures that any call with no move is able to be compared with moves it may encounter)
         nullMove = Move(-1, -1, -1)
-        # Get a list of all moves that are certainly right
-        all_moves = single_possibility_sudoku_rule(game_state)
+        # Get a list of all possible moves
+        all_moves = self.get_all_moves(game_state)
         # If there is no move of which we can be sure that it won't be rejected by the Oracle
         if len(all_moves) == 0:
             # Get a list of all possible move
@@ -245,11 +268,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # Evaluate the leaf node based on the heuristics function "evaluate_state"
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
 
-        depth_1_scores = self.check_random_move(game_state, all_moves)
-        if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
-            return random.choice(all_moves), 0, meta
-        else:
-            all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
+        # Update the list of all moves according to the game stage we are in currently
+        all_moves = self.determine_game_stage(game_state, all_moves, meta)
 
         # Not a leaf node, compute the best option among the sub-trees according to the maximizing_player parameter
         if maximizing_player:
