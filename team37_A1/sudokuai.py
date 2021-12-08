@@ -224,8 +224,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
         # Default nullMove for referencing (this ensures that any call with no move is able to be compared with moves it may encounter)
         nullMove = Move(-1, -1, -1)
-        # Get a list of all possible moves using the input gamestate
-        all_moves = self.get_all_moves(game_state)
+        # Get a list of all moves that are certainly right
+        all_moves = single_possibility_sudoku_rule(game_state)
+        # If there is no move of which we can be sure that it won't be rejected by the Oracle
+        if len(all_moves) == 0:
+            # Get a list of all possible move
+            all_moves = self.get_all_moves(game_state)
         # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:
             # Check if the game finished
