@@ -354,8 +354,3 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
 
         return score_advantage
-        
-        
-        
-        
-
