@@ -9,7 +9,7 @@ from copy import deepcopy
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
-from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections
+from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections, single_possibility_sudoku_rule
 from team37_A1.metadata import Metadata
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
