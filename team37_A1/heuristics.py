@@ -203,6 +203,7 @@ def only_square_strat(board: SudokuBoard):
     N = board.N
     moves = []
     # apply the only square rule to try and find guaranteed moves to fill rows, columns or sections
+    # rows
     for i in range(N):
         # loop over rows and check if a row has 2 empty slots
         empties = []
@@ -213,7 +214,7 @@ def only_square_strat(board: SudokuBoard):
             else:
                 options.remove(board.get(i, j))
         # if there's exactly 2
-        if len(empties) == 2:
+        if len(empties) == 2 and len(options) == 2: #this should never be disaligned
             # then check if you can guarantee solve these 2
             # if in both spots both numbers are valid, we cannot be sure which goes where yet
             # otherwise we know that one spot forces one value and the other must for the next
@@ -223,17 +224,21 @@ def only_square_strat(board: SudokuBoard):
                   solvable(board, Move(empties[1][0], empties[1][1], options[1]))]  # c21 + c22
 
             if sum(c1) == 2 and sum(c2) == 2:
-                return []
+                continue
             elif sum(c1) == 1 and sum(c2) == 2:
                 if c1[0]:
-                    return [Move(empties[0][0], empties[0][1], options[0]), Move(empties[1][0], empties[1][1], options[1])]
+                    moves.append(Move(empties[0][0], empties[0][1], options[0]))
+                    moves.append(Move(empties[1][0], empties[1][1], options[1]))
                 else:
-                    return [Move(empties[0][0], empties[0][1], options[1]), Move(empties[1][0], empties[1][1], options[0])]
+                    moves.append(Move(empties[0][0], empties[0][1], options[1]))
+                    moves.append(Move(empties[1][0], empties[1][1], options[0]))
             else: #c1 == 2 c2 == 1 or c1 == 1 and c2 == 1
                 if c2[0]:
-                    return [Move(empties[1][0], empties[1][1], options[0]), Move(empties[0][0], empties[0][1], options[1])]
+                    moves.append(Move(empties[1][0], empties[1][1], options[0]))
+                    moves.append(Move(empties[0][0], empties[0][1], options[1]))
                 else:
-                    return [Move(empties[1][0], empties[1][1], options[1]), Move(empties[0][0], empties[0][1], options[0])]
+                    moves.append(Move(empties[1][0], empties[1][1], options[1]))
+                    moves.append(Move(empties[0][0], empties[0][1], options[0]))
     #columns
     for j in range(N):
         empties = []
@@ -243,26 +248,71 @@ def only_square_strat(board: SudokuBoard):
                 empties.append((i, j))
             else:
                 options.remove(board.get(i, j))
-        if len(empties) == 2:
+        if len(empties) == 2 and len(options) == 2: #this should never be disaligned
             #check again if you can guarantee solve the pair
             c1 = [solvable(board, Move(empties[0][0], empties[0][1], options[0])),
                   solvable(board, Move(empties[0][0], empties[0][1], options[1]))]  # c11 + c12
             c2 = [solvable(board, Move(empties[1][0], empties[1][1], options[0])),
                   solvable(board, Move(empties[1][0], empties[1][1], options[1]))]  # c21 + c22
+
         if sum(c1) == 2 and sum(c2) == 2:
-            return []
+            continue
         elif sum(c1) == 1 and sum(c2) == 2:
             if c1[0]:
-                return [Move(empties[0][0], empties[0][1], options[0]), Move(empties[1][0], empties[1][1], options[1])]
+                moves.append(Move(empties[0][0], empties[0][1], options[0]))
+                moves.append(Move(empties[1][0], empties[1][1], options[1]))
             else:
-                return [Move(empties[0][0], empties[0][1], options[1]), Move(empties[1][0], empties[1][1], options[0])]
+                moves.append(Move(empties[0][0], empties[0][1], options[1]))
+                moves.append(Move(empties[1][0], empties[1][1], options[0]))
         else:  # c1 == 2 c2 == 1 or c1 == 1 and c2 == 1
             if c2[0]:
-                return [Move(empties[1][0], empties[1][1], options[0]), Move(empties[0][0], empties[0][1], options[1])]
+                moves.append(Move(empties[1][0], empties[1][1], options[0]))
+                moves.append(Move(empties[0][0], empties[0][1], options[1]))
             else:
-                return [Move(empties[1][0], empties[1][1], options[1]), Move(empties[0][0], empties[0][1], options[0])]
-    # TODO: repeat for sections
+                moves.append(Move(empties[1][0], empties[1][1], options[1]))
+                moves.append(Move(empties[0][0], empties[0][1], options[0]))
     #sections
+    rows = board.n
+    columns = board.m
+    #loop over the "squares" by identifying the top left coordinate (starting in 0)
+    for i in range(0, N, board.n):
+        for j in range(0, N, board.m):
+            # section with topleft corner at (i, j)
+            empties = []
+            options = [h for h in range(1, N+1)]
+
+            introw = math.ceil((i + 1) / rows)
+            intcol = math.ceil((j + 1) / columns)
+            for p in range(((introw - 1) * rows), (introw * rows)):
+                for q in range(((intcol - 1) * columns), (intcol * columns)):
+                    if board.get(p, q) is SudokuBoard.empty:
+                        empties.append((p, q))
+                    else:
+                        options.remove(board.get(p, q))
+
+            if len(empties) == 2 and len(options) == 2: #this should never be disaligned
+                #check again if you can guarantee solve the pair
+                c1 = [solvable(board, Move(empties[0][0], empties[0][1], options[0])),
+                      solvable(board, Move(empties[0][0], empties[0][1], options[1]))]  # c11 + c12
+                c2 = [solvable(board, Move(empties[1][0], empties[1][1], options[0])),
+                      solvable(board, Move(empties[1][0], empties[1][1], options[1]))]  # c21 + c22
+
+            if sum(c1) == 2 and sum(c2) == 2:
+                continue
+            elif sum(c1) == 1 and sum(c2) == 2:
+                if c1[0]:
+                    moves.append(Move(empties[0][0], empties[0][1], options[0]))
+                    moves.append(Move(empties[1][0], empties[1][1], options[1]))
+                else:
+                    moves.append(Move(empties[0][0], empties[0][1], options[1]))
+                    moves.append(Move(empties[1][0], empties[1][1], options[0]))
+            else:  # c1 == 2 c2 == 1 or c1 == 1 and c2 == 1
+                if c2[0]:
+                    moves.append(Move(empties[1][0], empties[1][1], options[0]))
+                    moves.append(Move(empties[0][0], empties[0][1], options[1]))
+                else:
+                    moves.append(Move(empties[1][0], empties[1][1], options[1]))
+                    moves.append(Move(empties[0][0], empties[0][1], options[0]))
     # TODO: repeat recursively for > 2 empty spaces
-    return []
+    return moves
 
