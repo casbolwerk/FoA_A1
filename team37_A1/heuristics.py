@@ -199,14 +199,14 @@ def solvable(board: SudokuBoard, move: Move):
 
     return check_row_board(board, i, value) and check_column_board(board, j, value) and check_square_board(board, i, j, value)
 
-
-def only_square_strat(board: SudokuBoard, move: Move):
+def only_square_strat(board: SudokuBoard):
+    N = board.N
     moves = []
     # apply the only square rule to try and find guaranteed moves to fill rows, columns or sections
     for i in range(N):
         # loop over rows and check if a row has 2 empty slots
         empties = []
-        options = [i for i in range(1, N+1)]
+        options = [h for h in range(1, N+1)]
         for j in range(N):
             if board.get(i, j) is SudokuBoard.empty:
                 empties.append((i, j))
@@ -217,8 +217,11 @@ def only_square_strat(board: SudokuBoard, move: Move):
             # then check if you can guarantee solve these 2
             # if in both spots both numbers are valid, we cannot be sure which goes where yet
             # otherwise we know that one spot forces one value and the other must for the next
-            c1 = [solvable(board, Move(empties[0][0], empties[0][1], options[0])), solvable(board, Move(empties[0][0], empties[0][1], options[1]))] #c11 + c12
-            c2 = [solvable(board, Move(empties[1][0], empties[1][1], options[0])), solvable(board, Move(empties[1][0], empties[1][1], options[1]))] #c21 + c22
+            c1 = [solvable(board, Move(empties[0][0], empties[0][1], options[0])),
+                  solvable(board, Move(empties[0][0], empties[0][1], options[1]))]  # c11 + c12
+            c2 = [solvable(board, Move(empties[1][0], empties[1][1], options[0])),
+                  solvable(board, Move(empties[1][0], empties[1][1], options[1]))]  # c21 + c22
+
             if sum(c1) == 2 and sum(c2) == 2:
                 return []
             elif sum(c1) == 1 and sum(c2) == 2:
@@ -231,11 +234,35 @@ def only_square_strat(board: SudokuBoard, move: Move):
                     return [Move(empties[1][0], empties[1][1], options[0]), Move(empties[0][0], empties[0][1], options[1])]
                 else:
                     return [Move(empties[1][0], empties[1][1], options[1]), Move(empties[0][0], empties[0][1], options[0])]
-        else:
-            continue
-    
-    return []
-    # TODO: repeat for sections and columns
+    #columns
+    for j in range(N):
+        empties = []
+        options = [h for h in range(1, N+1)]
+        for i in range(N):
+            if board.get(i, j) is SudokuBoard.empty:
+                empties.append((i, j))
+            else:
+                options.remove(board.get(i, j))
+        if len(empties) == 2:
+            #check again if you can guarantee solve the pair
+            c1 = [solvable(board, Move(empties[0][0], empties[0][1], options[0])),
+                  solvable(board, Move(empties[0][0], empties[0][1], options[1]))]  # c11 + c12
+            c2 = [solvable(board, Move(empties[1][0], empties[1][1], options[0])),
+                  solvable(board, Move(empties[1][0], empties[1][1], options[1]))]  # c21 + c22
+        if sum(c1) == 2 and sum(c2) == 2:
+            return []
+        elif sum(c1) == 1 and sum(c2) == 2:
+            if c1[0]:
+                return [Move(empties[0][0], empties[0][1], options[0]), Move(empties[1][0], empties[1][1], options[1])]
+            else:
+                return [Move(empties[0][0], empties[0][1], options[1]), Move(empties[1][0], empties[1][1], options[0])]
+        else:  # c1 == 2 c2 == 1 or c1 == 1 and c2 == 1
+            if c2[0]:
+                return [Move(empties[1][0], empties[1][1], options[0]), Move(empties[0][0], empties[0][1], options[1])]
+            else:
+                return [Move(empties[1][0], empties[1][1], options[1]), Move(empties[0][0], empties[0][1], options[0])]
+    # TODO: repeat for sections
+    #sections
     # TODO: repeat recursively for > 2 empty spaces
     return []
 
