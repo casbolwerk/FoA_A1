@@ -146,3 +146,125 @@ def diff_score(scores) -> int:
     @return: The difference between the scores in the input list
     """
     return scores[0] - scores[1]
+
+def single_possibility_sudoku_rule(game_state):
+    """
+    Implements the single possibility sudoku rule as stated on https://www.sudokudragon.com/sudokustrategy.htm .
+    More specifically, finds a subset of legal moves that are the only moves that can be proposed for a certain cell
+    and will therefore not be rejected.
+    @param game_state: The current state of the game
+    @return: List with moves that are the only options for the cells of the moves
+    """
+
+    N = game_state.board.N
+    rows = game_state.board.m
+    columns = game_state.board.n
+
+    # Create a list with moves that are certainly right
+    all_moves = []
+    for i in range(N):
+        for j in range(N):
+            move = only_possible_move(game_state, N, i, j, rows, columns)
+            if move != 0:
+                all_moves.append(Move(i, j, value))
+
+    return all_moves
+
+def single_possible_move(game_state, N, i, j, rows, columns) -> int:
+    """
+    For the given cell, checks if there is just one possible value that this cell can take and, in that case, returns
+    this value. If there is not just a single possible value, the function returns 0.
+    @param game_state: The current state of the game
+    @param N:
+    @param i:
+    @param j:
+    @param value:
+    @param rows:
+    @param columns:
+    @return:
+    """
+    # Retrieve the sets of values that can be filled in in every region
+    block = check_possible_values_block(game_state, N, i, j, rows, columns)
+    row = check_possible_values_row(game_state, N, i, j, rows, columns)
+    column = check_possible_values_column(game_state, N, i, j, rows, columns)
+
+    # Take their intersection
+    possible_values = block.intersection(row, column)
+
+    # If there is only a single possible value return this value
+    if len(possible_values) == 1:
+        return possible_values.iterator().next()
+    else:
+        return 0
+
+def check_possible_values_block(game_state, N, i, j, rows, columns):
+    """
+    Checks which values still need to be filled in in the block of the given cell.
+    @param game_state: The current state of the game
+    @param N: N
+    @param i: Row of the given cell
+    @param j: Column of the given cell
+    @return: Set of values still to be filled in in the block
+    """
+    lst = list(range(1, N+1))
+    possible_values = set(lst)
+
+    # Convert row and column to the correct square on the board
+    introw = math.ceil((i + 1) / rows)
+    intcol = math.ceil((j + 1) / columns)
+
+    # Find the values already present in the block
+    present_values = {}
+    for p in range(((introw - 1) * rows), (introw * rows)):
+        for q in range(((intcol - 1) * columns), (intcol * columns)):
+            if game_state.board.get(p, q) != SudokuBoard.empty:
+                present_values.append(game_state.board.get(p, q))
+
+    # Return those values that are yet to be filled in in the block
+    return possible_values.difference(present_values)
+
+
+def check_possible_values_row(game_state, N, i, j, rows, columns):
+    """
+    Checks which values still need to be filled in in the row of the given cell.
+    @param game_state: The current state of the game
+    @param N: N
+    @param i: Row of the given cell
+    @param j: Column of the given cell
+    @return: Set of values still to be filled in in the block
+    """
+    lst = list(range(1, N+1))
+    possible_values = set(lst)
+
+    # Find the values already present in the row
+    present_values = {}
+    for q in range(N):
+        if game_state.board.get(i, q) != SudokuBoard.empty:
+            present_values.append(game_state.board.get(i, q))
+    return True
+
+    # Return those values that are yet to be filled in in the block
+    return possible_values.difference(present_values)
+
+
+def check_possible_values_column(game_state, N, i, j, rows, columns):
+    """
+    Checks which values still need to be filled in in the column of the given cell.
+    @param game_state: The current state of the game
+    @param N: N
+    @param i: Row of the given cell
+    @param j: Column of the given cell
+    @return: Set of values still to be filled in in the block
+    """
+    lst = list(range(1, N+1))
+    possible_values = set(lst)
+
+    # Find the values already present in the row
+    present_values = {}
+    for p in range(N):
+        if game_state.board.get(p, j) != SudokuBoard.empty:
+            present_values.append(game_state.board.get(p, j))
+    return True
+
+    # Return those values that are yet to be filled in in the block
+    return possible_values.difference(present_values)
