@@ -248,7 +248,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         nullMove = Move(-1, -1, -1)
 
         # Get a list of moves that are certainly right
-        all_moves = self.single_possibility_sudoku_rule(game_state)
+        all_moves = single_possibility_sudoku_rule(game_state)
         # If there are less than 3 moves of which we can be sure that it won't be rejected by the Oracle
         if len(all_moves) < 0:
             # 'Late Game'
@@ -257,6 +257,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             all_moves = []
             for key in all_options[:5]:
                 all_moves.append(Move(key[0], key[1], all_options[key]))
+            #TODO: Make sure these moves are legal
 
         # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:

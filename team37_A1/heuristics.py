@@ -179,7 +179,7 @@ def single_possibility_sudoku_rule(game_state):
             if game_state.board.get(i, j) == SudokuBoard.empty:
                 values = possible_moves(game_state, N, i, j, rows, columns)
                 if len(values) == 1:
-                    all_moves.append(Move(i, j, values.iterator().next()))
+                    all_moves.append(Move(i, j, values.pop()))
 
     return all_moves
 
