@@ -167,7 +167,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # Get list of possible moves, sorted by possible values in the squares
             possible_moves = all_possibilities(game_state)
             final_index = min(10, len(possible_moves))
-            # TODO make all_possibilities return moves instead of just squares and their number of poss.
             # all_moves = list(possible_moves[:final_index].keys())
 
             # depth_1_scores = self.check_random_move(game_state, all_moves)
@@ -247,12 +246,18 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
         # Default nullMove for referencing (this ensures that any call with no move is able to be compared with moves it may encounter)
         nullMove = Move(-1, -1, -1)
-        # Get a list of all possible moves
-        all_moves = self.get_all_moves(game_state)
-        # If there is no move of which we can be sure that it won't be rejected by the Oracle
-        if len(all_moves) == 0:
-            # Get a list of all possible move
-            all_moves = self.get_all_moves(game_state)
+
+        # Get a list of moves that are certainly right
+        all_moves = self.single_possibility_sudoku_rule(game_state)
+        # If there are less than 3 moves of which we can be sure that it won't be rejected by the Oracle
+        if len(all_moves) < 0:
+            # 'Late Game'
+            # Retrieve the moves for the 5 cells where we can be most certain that the proposed values are right
+            all_options = all_possibilities(game_state)
+            all_moves = []
+            for key in all_options[:5]:
+                all_moves.append(Move(key[0], key[1], all_options[key]))
+
         # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:
             # Check if the game finished

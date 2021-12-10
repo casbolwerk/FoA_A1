@@ -202,13 +202,12 @@ def all_possibilities(game_state):
             # If there is no value present in the cell already
             if game_state.board.get(i, j) == SudokuBoard.empty:
                 values = possible_moves(game_state, N, i, j, rows, columns)
-                num_values = len(values)
-                # Add the number of possible values to a dict with the corresponding square
-                possibilities[(i, j)] = num_values
+                # Add the possible values to a dict with the corresponding cell
+                possibilities[(i, j)] = values
 
     # Sort the possibilities by the number of possible values, lower is better
-    possibilities = {square: num_values for square, num_values in
-                     sorted(possibilities.items(), key=lambda square_values: square_values[1])}
+    possibilities = {cell: values for cell, values in
+                     sorted(possibilities.items(), key=lambda cell_values: len(cell_values[1]))}
 
     return possibilities
 
