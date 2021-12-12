@@ -9,7 +9,7 @@ from copy import deepcopy
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
-from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections
+from team37_A1.heuristics import move_score, diff_score, prepares_sections, retrieve_board_status
 from team37_A1.metadata import Metadata
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -239,6 +239,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     return nullMove, -math.inf, meta
 
             # Evaluate the leaf node based on the heuristics function "evaluate_state"
+
+            print("Evaluation: " + str(self.evaluate_state(game_state, meta.last_move)))
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
 
         depth_1_scores = self.check_random_move(game_state, all_moves)
@@ -331,27 +333,51 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @return: An evaluation of the input game state
         """
         # Use the naive implementation (only the score difference of the resulting board state)
-        naive = True
+        naive = False
 
         difference = diff_score(game_state.scores) #how much p1 is ahead of p2 (negative implies behind)
         score_advantage = difference
 
+        # it is bad if the opponent can immediately gain point(s) in the following turn (do not leave 1 square in a region open)
+        # it is bad if the agent fills in an odd number of squares, as this leads possible chain of entries where the opponent gains a point (i.e.: 3 empty after turn -> opp -> 2 empty -> agent -> 1 empty -> point for opp)
+        # it is good if the agent fills in an even number of squares, as this leads to a chain of entries where the agent could gain a point
+        # scoring a point yourself has the highest value.
         if not naive:
+            # Start a variable for the current board state:
+            board_score = 0
+            # Compute how many points were obtained using the last_move (Add higher priority to scored points by multiplying by 10)
+            score_obtained = move_score(game_state.board, last_move) * 10
             # Check who's turn it is
             curr_player_number = 1 if len(game_state.moves) % 2 == 0 else 2
-            # Compute whether there are points to be scored by the opponent in the next turn
-            possible_opp_gain = immediate_gain(game_state.board, last_move)
+            # Compute the number of empty cells left in the board as well as the amount of points the opponent can immediately score (potentially)
+            empties, possible_opp_gain = retrieve_board_status(game_state.board, last_move)
+            # Add higher priority to directly available points (on the same tier as directly scored points)
+            possible_opp_gain = possible_opp_gain * 10
 
+            # Score the board state +1 for each region that is left with an even number of empty cells and -1 for each region with an odd number of remaining empty cells
+            for region_empties in empties:
+                if region_empties % 2 == 0:
+                    board_score = board_score + 1
+                else:
+                    board_score = board_score - 1
+
+            # Update the board_score using the gained points, the possible gain from the opponent afterwards, and the difference in scores after the move is made
+            # TODO: check if minimizing player should be negative score here instead
+            # TODO: check if adding difference here has any meaningful effect
+            board_score = board_score + score_obtained - possible_opp_gain + difference
+
+            return board_score
+            # TODO: check if this has any use remaining
             # Check whether the game has ended with the last turn
-            if not hasEmpty(game_state.board):
-                # Check whether the resulting score is winning
-                winning = difference >= 0 if curr_player_number == 1 else difference < 0
-                # Update the evaluation based on whether the player is winning
-                if winning:
-                    score_advantage = score_advantage + 10 # if curr_player_number == 1 else score_advantage - 100
-            else:
-                # Otherwise use a combination of the score difference and the possible gain by the opponent (which reduces the score)
-                score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
+            # if not hasEmpty(game_state.board):
+            #     # Check whether the resulting score is winning
+            #     winning = difference >= 0 if curr_player_number == 1 else difference < 0
+            #     # Update the evaluation based on whether the player is winning
+            #     if winning:
+            #         score_advantage = score_advantage + 10 # if curr_player_number == 1 else score_advantage - 100
+            # else:
+            #     # Otherwise use a combination of the score difference and the possible gain by the opponent (which reduces the score)
+            #     score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
 
         return score_advantage
         
