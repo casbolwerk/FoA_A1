@@ -256,13 +256,15 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # If there are less than 3 moves of which we can be sure that it won't be rejected by the Oracle
         if len(all_moves) < 3:
-            print("Entered loop")
             # 'Early Game'
             # Retrieve the moves for the 5 cells where we can be most certain that the proposed values are right
             all_options = all_possibilities(game_state)
             all_moves = []
             # Look at the first 5 cells
-            for key in all_options[:5]:
+            count = 0
+            for key in all_options:
+                # if count < 10:
+                #     count += 1
                 all_moves.append(Move(key[0], key[1], all_options[key]))
 
         # Check whether we reached a leaf node or the maximum depth we intend to search on
@@ -307,7 +309,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_value = max(best_value, self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1])
 
                 # Update best move and global value to the new move as long as it is at least as good as the previous best
-                if new_value >= best_value:
+                if new_value > best_value:
                     best_value = new_value
                     best_move = move
 
