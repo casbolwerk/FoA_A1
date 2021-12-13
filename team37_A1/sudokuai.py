@@ -250,11 +250,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # Get a list of moves that are certainly right
         all_moves = single_possibility_sudoku_rule(game_state)
         # If there are less than 3 moves of which we can be sure that it won't be rejected by the Oracle
-        if len(all_moves) < 0:
-            # 'Late Game'
+        if len(all_moves) < 3:
+            print("Entered loop")
+            # 'Early Game'
             # Retrieve the moves for the 5 cells where we can be most certain that the proposed values are right
             all_options = all_possibilities(game_state)
             all_moves = []
+            # Look at the first 5 cells
             for key in all_options[:5]:
                 all_moves.append(Move(key[0], key[1], all_options[key]))
             #TODO: Make sure these moves are legal
