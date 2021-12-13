@@ -111,23 +111,6 @@ def leaves_square(board, i, j) -> int:
                 count = count + 1
     return count
 
-### REDUNDANT
-def immediate_gain(board: SudokuBoard, move: Move) -> int:
-    """
-    Calculate the score that can immediately be obtained by a move in the next turn.
-    @param board: The current board
-    @param move: The move to be performed
-    @return: The amount of points gained as a result from the move on the provided board
-    """
-    i, j = move.i, move.j
-    N = board.N
-    leaves = [leaves_square(board, i, j) == 1, leaves_col(board, N, j) == 1, leaves_row(board, N, i) == 1]
-
-    move_score = leaves.count(True)
-    scores = [0, 1, 3, 7]
-
-    return scores[move_score]
-
 def retrieve_board_status(board: SudokuBoard, move: Move):
     """
     Count the empty slots in the regions of the input move and check how many immediate points can be gained from the board.
