@@ -9,8 +9,8 @@ from copy import deepcopy
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
-from team37_A1.heuristics import move_score, diff_score, prepares_sections, retrieve_board_status
-from team37_A1.metadata import Metadata
+from team37_SubA1.heuristics import move_score, diff_score, immediate_gain, prepares_sections
+from team37_SubA1.metadata import Metadata
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
@@ -176,6 +176,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # Introducing a null move to allow for initial call
         nullMove = Move(-1, -1, -1)
 
+        # Set the initial starting depth
+        depth = 1
+
         """
         Initiate a Metadata object to be sent with the original alphabeta() function call, consisting of:
         - last_move: a null move as initiated above
@@ -184,8 +187,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
         meta = Metadata(nullMove, proposal, -math.inf)
 
-        # Set the initial starting depth
-        depth = 1
         """
         As the time per turn is undefined and we will be interrupted in a way that our last proposed move is used,
         we can incrementally increase the depth at which our alphabeta tree is evaluating game states.
@@ -195,6 +196,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         while True:
             best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf)
             self.propose_move(best_move)
+
             depth = depth + 1
 
     def hasEmpty(self, board: SudokuBoard) -> bool:
@@ -239,6 +241,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # Evaluate the leaf node based on the heuristics function "evaluate_state"
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
 
+        depth_1_scores = self.check_random_move(game_state, all_moves)
+        if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
+            return random.choice(all_moves), 0, meta
+        else:
+            all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
+
         # Not a leaf node, compute the best option among the sub-trees according to the maximizing_player parameter
         if maximizing_player:
             # Start with -infty
@@ -260,10 +268,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 # Update the metadata, note that meta.best_move and meta.best_value did not change (yet)
                 meta.setLast(move)
                 # Compute and compare the evaluation of further subtree's selecting the maximum of the highest found sub-tree and the current sub-tree
-
                 new_value = max(best_value, self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1])
-                # Update best move and global value to the new move as long as it is better than the previous best
-                if new_value > best_value:
+
+                # Update best move and global value to the new move as long as it is at least as good as the previous best
+                if new_value >= best_value:
                     best_value = new_value
                     best_move = move
 
@@ -278,6 +286,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             return best_move, best_value, meta
         else:
             # This is the minimizing players actions
+
             # Start with infty
             best_value = math.inf
             # Pick a random move to ensure some move will be returned after computation
@@ -304,8 +313,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     best_value = new_value
                     best_move = move
 
-                # compare the alpha to check for break off
+                # compare the alpha to check for breakoff
                 if alpha >= new_value:
+                    #print('ALPHA BREAK', beta, '<=', alpha)
                     break
 
                 # Update the beta value
@@ -321,34 +331,31 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @return: An evaluation of the input game state
         """
         # Use the naive implementation (only the score difference of the resulting board state)
-        # A2 deadline: set naive to False
-        naive = False
+        naive = True
 
         difference = diff_score(game_state.scores) #how much p1 is ahead of p2 (negative implies behind)
         score_advantage = difference
 
         if not naive:
-            # Start a variable for the current board state:
-            board_score = 0
-            # Compute how many points were obtained using the last_move (Add higher priority to scored points by multiplying by 10)
-            score_obtained = move_score(game_state.board, last_move) * 10
             # Check who's turn it is
             curr_player_number = 1 if len(game_state.moves) % 2 == 0 else 2
-            # Compute the number of empty cells left in the board as well as the amount of points the opponent can immediately score (potentially)
-            empties, possible_opp_gain = retrieve_board_status(game_state.board, last_move)
-            # Add higher priority to directly available points (on the same tier as directly scored points)
-            possible_opp_gain = possible_opp_gain * 10
+            # Compute whether there are points to be scored by the opponent in the next turn
+            possible_opp_gain = immediate_gain(game_state.board, last_move)
 
-            # Score the board state +1 for each region that is left with an even number of empty cells and -1 for each region with an odd number of remaining empty cells
-            for region_empties in empties:
-                if region_empties % 2 == 0:
-                    board_score = board_score + 1
-                else:
-                    board_score = board_score - 1
-
-            # Update the board_score using the gained points, the possible gain from the opponent afterwards, and the difference in scores after the move is made
-            board_score = board_score + score_obtained - possible_opp_gain + difference
-
-            return board_score
+            # Check whether the game has ended with the last turn
+            if not hasEmpty(game_state.board):
+                # Check whether the resulting score is winning
+                winning = difference >= 0 if curr_player_number == 1 else difference < 0
+                # Update the evaluation based on whether the player is winning
+                if winning:
+                    score_advantage = score_advantage + 10 # if curr_player_number == 1 else score_advantage - 100
+            else:
+                # Otherwise use a combination of the score difference and the possible gain by the opponent (which reduces the score)
+                score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
 
         return score_advantage
+        
+        
+        
+        
+
