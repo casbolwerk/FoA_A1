@@ -76,7 +76,6 @@ def leaves_row(board, N, i) -> int:
             count = count + 1
     return count
 
-    #return the number of empty squares in the column including the most recent move
 def leaves_col(board, N, j) -> int:
     """
     Compute the number of empty squares in the column j.
@@ -91,7 +90,6 @@ def leaves_col(board, N, j) -> int:
             count = count + 1
     return count
 
-    #return the number of empty squares in the region including the most recent move
 def leaves_square(board, i, j) -> int:
     """
     Compute the number of empty squares in the region containing entry (i, j).
@@ -111,6 +109,7 @@ def leaves_square(board, i, j) -> int:
                 count = count + 1
     return count
 
+#TODO: merge with single_possibility_sudoku_rule branch
 def retrieve_board_status(board: SudokuBoard, move: Move):
     """
     Count the empty slots in the regions of the input move and check how many immediate points can be gained from the board.

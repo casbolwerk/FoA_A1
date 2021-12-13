@@ -305,7 +305,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     best_value = new_value
                     best_move = move
 
-                # compare the alpha to check for breakoff
+                # compare the alpha to check for break off
                 if alpha >= new_value:
                     break
 
@@ -353,8 +353,3 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             return board_score
 
         return score_advantage
-        
-        
-        
-        
-
