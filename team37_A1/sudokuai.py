@@ -249,6 +249,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # Get a list of moves that are certainly right
         all_moves = single_possibility_sudoku_rule(game_state)
+
+        # print("Available moves")
+        # for move in all_moves:
+        #     print("(" + str(move.i) + "," + str(move.j) + ") --> " + str(move.value))
+
         # If there are less than 3 moves of which we can be sure that it won't be rejected by the Oracle
         if len(all_moves) < 3:
             print("Entered loop")
@@ -259,7 +264,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # Look at the first 5 cells
             for key in all_options[:5]:
                 all_moves.append(Move(key[0], key[1], all_options[key]))
-            #TODO: Make sure these moves are legal
 
         # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:

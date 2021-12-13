@@ -175,11 +175,13 @@ def single_possibility_sudoku_rule(game_state):
     all_moves = []
     for i in range(N):
         for j in range(N):
+#            print("Cell ("+ str(i) + "," + str(j) + ")")
             # If there is no value present in the cell already
             if game_state.board.get(i, j) == SudokuBoard.empty:
                 values = possible_moves(game_state, N, i, j, rows, columns)
                 if len(values) == 1:
                     all_moves.append(Move(i, j, values.pop()))
+#                    print("Appended")
 
     return all_moves
 
@@ -225,15 +227,28 @@ def possible_moves(game_state, N, i, j, rows, columns) -> int:
     @param columns:
     @return:
     """
+
+
     # Retrieve the sets of values that can be filled in in every region
     block = check_possible_values_block(game_state, N, i, j, rows, columns)
+    # print("Block options")
+    # for k in block:
+    #     print(k)
     row = check_possible_values_row(game_state, N, i, j, rows, columns)
+    # print("Row options")
+    # for l in row:
+    #     print(l)
     column = check_possible_values_column(game_state, N, i, j, rows, columns)
+    # print("Column options")
+    # for m in column:
+    #     print(m)
 
     # Take their intersection
     possible_values = block.intersection(row, column)
+    # print("Final options")
+    # for i in possible_values:
+    #     print(i)
 
-    # If there is only a single possible value return this value
     return possible_values
 
 
@@ -255,10 +270,10 @@ def check_possible_values_block(game_state, N, i, j, rows, columns) -> set:
 
     # Find the values already present in the block
     present_values = set([])
-    for p in range(((introw - 1) * rows), (introw * rows)):
-        for q in range(((intcol - 1) * columns), (intcol * columns)):
-            if game_state.board.get(p, q) != SudokuBoard.empty:
-                present_values.add(game_state.board.get(p, q))
+    for s in range(((introw - 1) * rows), (introw * rows)):
+        for t in range(((intcol - 1) * columns), (intcol * columns)):
+            if game_state.board.get(s, t) != SudokuBoard.empty:
+                present_values.add(game_state.board.get(s, t))
 
     # Return those values that are yet to be filled in in the block
     return possible_values.difference(present_values)
@@ -278,9 +293,9 @@ def check_possible_values_row(game_state, N, i, j, rows, columns) -> set:
 
     # Find the values already present in the row
     present_values = set([])
-    for q in range(N):
-        if game_state.board.get(i, q) != SudokuBoard.empty:
-            present_values.add(game_state.board.get(i, q))
+    for p in range(N):
+        if game_state.board.get(i, p) != SudokuBoard.empty:
+            present_values.add(game_state.board.get(i, p))
 
     # Return those values that are yet to be filled in in the block
     return possible_values.difference(present_values)
@@ -300,9 +315,9 @@ def check_possible_values_column(game_state, N, i, j, rows, columns) -> set:
 
     # Find the values already present in the row
     present_values = set([])
-    for p in range(N):
-        if game_state.board.get(p, j) != SudokuBoard.empty:
-            present_values.add(game_state.board.get(p, j))
+    for q in range(N):
+        if game_state.board.get(q, j) != SudokuBoard.empty:
+            present_values.add(game_state.board.get(q, j))
 
     # Return those values that are yet to be filled in in the block
     return possible_values.difference(present_values)
@@ -316,3 +331,4 @@ if __name__ == '__main__':
     board = load_sudoku_from_text(board_text)
     game_state = GameState(board, copy.deepcopy(board), [], [], [0, 0])
     all_possibilities(game_state)
+
