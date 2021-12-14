@@ -10,7 +10,7 @@ from copy import deepcopy
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 from team37_A1.heuristics import move_score, diff_score, prepares_sections, \
-                                 single_possibility_sudoku_rule, all_possibilities, retrieve_board_status # % immediate_gain
+                                 single_possibility_sudoku_rule, all_possibilities, retrieve_board_status
 from team37_A1.metadata import Metadata
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -169,11 +169,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             final_index = min(10, len(possible_moves))
             # all_moves = list(possible_moves[:final_index].keys())
 
-            # depth_1_scores = self.check_random_move(game_state, all_moves)
-            # if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
-            #     return random.choice(all_moves), 0, meta
-            # else:
-            #     all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
         else:
             # End game stage
             all_moves = single_possibility
@@ -215,9 +210,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         and then increments the depth by 1.
         """
         while True:
-            print('CURRENT DEPTH', depth)
             best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf)
-            print('new best move:', best_move, 'for score', best_score)
             self.propose_move(best_move)
             depth = depth + 1
 
@@ -242,7 +235,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @param depth: The maximum depth the routine is supposed to reach
         @param alpha: The current alpha value to be considered for pruning
         @param beta: The current beta value to be considered for pruning
-        @return:
+        @return: (Move, int, Metadata)
+            - Move: the best move found
+            - int: the evaluation of the best move
+            - Metadata: a metadata packet from the resulting computation
         """
         # Default nullMove for referencing (this ensures that any call with no move is able to be compared with moves it may encounter)
         nullMove = Move(-1, -1, -1)
@@ -256,6 +252,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # Retrieve the moves for the x cells where we can be most certain that the proposed values are right
             all_options = all_possibilities(game_state)
             all_moves = []
+            # TODO: add a ratio to limit all_options
             # Look at the first x cells (ratio of NxN)
             count = 0
             for key in all_options:
@@ -265,31 +262,19 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:
-            print("Evaluation of move: " + "Row: " + str(meta.last_move.i) + " Col: " + str(
-                meta.last_move.j) + " Value: " + str(meta.last_move.value) + " and evaluation score: " + str(
-                self.evaluate_state(game_state, meta.last_move)))
             # Check if the game finished
             if len(all_moves) == 0:
-                print('all_moves 0')
                 if not self.hasEmpty(game_state.board):
                     # The game has finished so we return the final score of the board
                     return nullMove, diff_score(game_state.scores), meta
                 else:
-                    print('invalid move')
                     # We cannot perform any more moves but the game is not finished, we've hit a deadlock
-
                     # We avoid this deadlock path by checking for nullMoves in choosing best moves
                     return nullMove, None, meta
 
             # Evaluate the leaf node based on the heuristics function "evaluate_state"
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
 
-        # depth_1_scores = self.check_random_move(game_state, all_moves)
-        # if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
-        #     return random.choice(all_moves), 0, meta
-        # else:
-        #     all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
-        
         # Update the list of all moves according to the game stage we are in currently
         all_moves = self.determine_game_stage(game_state, all_moves, meta)
 
@@ -317,32 +302,21 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
                 curr_value = self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1]
                 if curr_value is None:
-                    print('invalid encountered')
                     if len(all_moves) == 1:
                         if maximizing_player:
-                            print('maximizing unsolvable')
                             return nullMove, math.inf, meta
                         else:
-                            print('minimizing unsolvable')
                             return nullMove, -math.inf, meta
                     continue
                 new_value = max(best_value, curr_value)
 
-                print(move, new_value)
                 if new_value > best_value:
-                    print("Alphabeta returns: " + "Score: " + str(curr_value) + " and compares that to prev best value " +
-                          str(best_value) + " and True if maximizing: " + str(maximizing_player))
-                    moves = [str(move) for move in new_gs.moves]
-                    for new_move in moves:
-                        print(new_move)
-                        
                     best_value = new_value
                     best_move = move
 
                 alpha = max(alpha, new_value)
 
                 if beta <= alpha:
-                    print('maximizing break')
                     break
 
             # Return the best move found at the root node
@@ -353,8 +327,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             best_value = math.inf
             # Pick a random move to ensure some move will be returned after computation
             best_move = random.choice(all_moves)
-            if len(game_state.moves) > 0:
-                print('PREV MOVE IN GAME TREE', game_state.moves[-1])
 
             # Compute the best sub-tree each created using one of the possible moves
             for move in all_moves:
@@ -372,30 +344,21 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 # Compute and compare the evaluation of further subtree's selecting the minimum of the lowest found sub-tree and the current sub-tree
                 curr_value = self.alphabeta(new_gs, meta, True, depth - 1, alpha, beta)[1]
                 if curr_value is None:
-                    print('invalid encountered')
                     if len(all_moves) == 1:
                         if maximizing_player:
-                            print('maximizing unsolvable')
                             return nullMove, math.inf, meta
                         else:
-                            print('minimizing unsolvable')
                             return nullMove, -math.inf, meta
                     continue
                 new_value = min(best_value, curr_value)
 
                 if new_value < best_value:
-                    print("Alphabeta returns: " + "Score: " + str(curr_value) + " and compares that to prev best value " +
-                          str(best_value) + " and True if maximizing: " + str(maximizing_player))
-                    moves = [str(move) for move in new_gs.moves]
-                    for new_move in moves:
-                        print(new_move)
                     best_value = new_value
                     best_move = move
 
                 beta = min(beta, new_value)
 
                 if beta <= alpha:
-                    print('minimizing break')
                     break
 
             # Return the best move found at the root node
