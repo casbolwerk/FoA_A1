@@ -9,7 +9,8 @@ from copy import deepcopy
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
-from team37_A1.heuristics import move_score, diff_score, prepares_sections, retrieve_board_status
+from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections, \
+                                 single_possibility_sudoku_rule, all_possibilities, retrieve_board_status
 from team37_A1.metadata import Metadata
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -158,6 +159,27 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             depth_1_scores.append(move_score(new_gs.board, move))
         return depth_1_scores
 
+    def determine_game_stage(self, game_state: GameState, all_moves: [Move], meta: Metadata) -> [Move]:
+        # Get a list of all moves that are certainly right
+        single_possibility = single_possibility_sudoku_rule(game_state)
+        if not single_possibility:
+            # Still in the early game
+            # Get list of possible moves, sorted by possible values in the squares
+            possible_moves = all_possibilities(game_state)
+            final_index = min(10, len(possible_moves))
+            # all_moves = list(possible_moves[:final_index].keys())
+
+            # depth_1_scores = self.check_random_move(game_state, all_moves)
+            # if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
+            #     return random.choice(all_moves), 0, meta
+            # else:
+            #     all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
+        else:
+            # End game stage
+            all_moves = single_possibility
+
+        return all_moves
+
     def compute_best_move(self, game_state: GameState) -> None:
         """
         Compute the best possible move to be made during the players turn based on the Minimax algorithm
@@ -222,8 +244,27 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
         # Default nullMove for referencing (this ensures that any call with no move is able to be compared with moves it may encounter)
         nullMove = Move(-1, -1, -1)
-        # Get a list of all possible moves using the input gamestate
-        all_moves = self.get_all_moves(game_state)
+
+        # Get a list of moves that are certainly right
+        all_moves = single_possibility_sudoku_rule(game_state)
+
+        # print("Available moves")
+        # for move in all_moves:
+        #     print("(" + str(move.i) + "," + str(move.j) + ") --> " + str(move.value))
+
+        # If there are less than 3 moves of which we can be sure that it won't be rejected by the Oracle
+        if len(all_moves) < 3:
+            # 'Early Game'
+            # Retrieve the moves for the 5 cells where we can be most certain that the proposed values are right
+            all_options = all_possibilities(game_state)
+            all_moves = []
+            # Look at the first 5 cells
+            count = 0
+            for key in all_options:
+                # if count < 10:
+                #     count += 1
+                all_moves.append(Move(key[0], key[1], all_options[key]))
+
         # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:
             # Check if the game finished
@@ -238,6 +279,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
             # Evaluate the leaf node based on the heuristics function "evaluate_state"
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
+
+        # Update the list of all moves according to the game stage we are in currently
+        all_moves = self.determine_game_stage(game_state, all_moves, meta)
 
         # Not a leaf node, compute the best option among the sub-trees according to the maximizing_player parameter
         if maximizing_player:
@@ -262,6 +306,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 # Compute and compare the evaluation of further subtree's selecting the maximum of the highest found sub-tree and the current sub-tree
 
                 new_value = max(best_value, self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1])
+                
                 # Update best move and global value to the new move as long as it is better than the previous best
                 if new_value > best_value:
                     best_value = new_value

@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 
+
 def completes_square(board, i, j):
     """
     Calculate whether the move to position (i, j) on the board completes its square
@@ -22,6 +23,7 @@ def completes_square(board, i, j):
                 return False
     return True
 
+
 def completes_col(board, N, j):
     """
     Calculate whether the move to position (i, j) on the board completes its column
@@ -35,6 +37,7 @@ def completes_col(board, N, j):
             return False
     return True
 
+
 def completes_row(board, N, i):
     """
     Calculate whether the move to position (i, j) on the board completes its row
@@ -47,6 +50,7 @@ def completes_row(board, N, i):
         if board.get(i, q) is SudokuBoard.empty:
             return False
     return True
+
 
 def move_score(board: SudokuBoard, move: Move):
     '''
@@ -63,6 +67,7 @@ def move_score(board: SudokuBoard, move: Move):
     scores = [0,1,3,7]
 
     return scores[move_score]
+
 
 def leaves_row(board, N, i) -> int:
     """
@@ -111,7 +116,7 @@ def leaves_square(board, i, j) -> int:
                 count = count + 1
     return count
 
-#TODO: merge with single_possibility_sudoku_rule branch
+
 def retrieve_board_status(board: SudokuBoard, move: Move):
     """
     Count the empty slots in the regions of the input move and check how many immediate points can be gained from the board.
@@ -165,6 +170,7 @@ def retrieve_board_status(board: SudokuBoard, move: Move):
 
     return empties, obtainable_points
 
+
 def prepares_sections(board: SudokuBoard, move: Move):
     """
     Check whether the provided move leaves a section on the board 2 turns from complete.
@@ -177,6 +183,7 @@ def prepares_sections(board: SudokuBoard, move: Move):
     prepared = [leaves_square(board, i, j) == 2, leaves_col(board, N, j) == 2, leaves_row(board, N, i) == 2]
     return prepared.count(True)
 
+
 def diff_score(scores) -> int:
     """
     Compute the difference in score between player 1 and player 2.
@@ -184,3 +191,179 @@ def diff_score(scores) -> int:
     @return: The difference between the scores in the input list
     """
     return scores[0] - scores[1]
+
+
+def single_possibility_sudoku_rule(game_state):
+    """
+    Implements the single possibility sudoku rule as stated on https://www.sudokudragon.com/sudokustrategy.htm .
+    More specifically, finds a subset of legal moves that are the only moves that can be proposed for a certain cell
+    and will therefore not be rejected.
+    @param game_state: The current state of the game
+    @return: List with moves that are the only options for the cells of the moves
+    """
+
+    N = game_state.board.N
+    rows = game_state.board.m
+    columns = game_state.board.n
+
+    # Create a list with moves that are certainly right
+    all_moves = []
+    for i in range(N):
+        for j in range(N):
+#            print("Cell ("+ str(i) + "," + str(j) + ")")
+            # If there is no value present in the cell already
+            if game_state.board.get(i, j) == SudokuBoard.empty:
+                values = possible_moves(game_state, N, i, j, rows, columns)
+                if len(values) == 1:
+                    all_moves.append(Move(i, j, values.pop()))
+#                    print("Appended")
+
+    return all_moves
+
+
+def all_possibilities(game_state):
+    """
+    Finds all possibilities for every square and sorts a dictionary with squares and number of possible values
+    @param game_state: The current state of the game
+    @return: Dictionary with empty squares and the amount of possible moves in those squares
+    """
+
+    N = game_state.board.N
+    rows = game_state.board.m
+    columns = game_state.board.n
+
+    possibilities = {}
+
+    for i in range(N):
+        for j in range(N):
+            # If there is no value present in the cell already
+            if game_state.board.get(i, j) == SudokuBoard.empty:
+                values = possible_moves(game_state, N, i, j, rows, columns)
+                # Add the possible values to a dict with the corresponding cell
+                possibilities[(i, j)] = values
+
+    # Sort the possibilities by the number of possible values, lower is better
+    possibilities = {cell: values for cell, values in
+                     sorted(possibilities.items(), key=lambda cell_values: len(cell_values[1]))}
+
+    return possibilities
+
+
+def possible_moves(game_state, N, i, j, rows, columns) -> int:
+    """
+    For the given cell, checks if there is just one possible value that this cell can take and, in that case, returns
+    this value. If there is not just a single possible value, the function returns 0.
+    @param game_state: The current state of the game
+    @param N:
+    @param i:
+    @param j:
+    @param value:
+    @param rows:
+    @param columns:
+    @return:
+    """
+
+
+    # Retrieve the sets of values that can be filled in in every region
+    block = check_possible_values_block(game_state, N, i, j, rows, columns)
+    # print("Block options")
+    # for k in block:
+    #     print(k)
+    row = check_possible_values_row(game_state, N, i, j, rows, columns)
+    # print("Row options")
+    # for l in row:
+    #     print(l)
+    column = check_possible_values_column(game_state, N, i, j, rows, columns)
+    # print("Column options")
+    # for m in column:
+    #     print(m)
+
+    # Take their intersection
+    possible_values = block.intersection(row, column)
+    # print("Final options")
+    # for i in possible_values:
+    #     print(i)
+
+    return possible_values
+
+
+def check_possible_values_block(game_state, N, i, j, rows, columns) -> set:
+    """
+    Checks which values still need to be filled in in the block of the given cell.
+    @param game_state: The current state of the game
+    @param N: N
+    @param i: Row of the given cell
+    @param j: Column of the given cell
+    @return: Set of values still to be filled in in the block
+    """
+    lst = list(range(1, N+1))
+    possible_values = set(lst)
+
+    # Convert row and column to the correct square on the board
+    introw = math.ceil((i + 1) / rows)
+    intcol = math.ceil((j + 1) / columns)
+
+    # Find the values already present in the block
+    present_values = set([])
+    for s in range(((introw - 1) * rows), (introw * rows)):
+        for t in range(((intcol - 1) * columns), (intcol * columns)):
+            if game_state.board.get(s, t) != SudokuBoard.empty:
+                present_values.add(game_state.board.get(s, t))
+
+    # Return those values that are yet to be filled in in the block
+    return possible_values.difference(present_values)
+
+
+def check_possible_values_row(game_state, N, i, j, rows, columns) -> set:
+    """
+    Checks which values still need to be filled in in the row of the given cell.
+    @param game_state: The current state of the game
+    @param N: N
+    @param i: Row of the given cell
+    @param j: Column of the given cell
+    @return: Set of values still to be filled in in the block
+    """
+    lst = list(range(1, N+1))
+    possible_values = set(lst)
+
+    # Find the values already present in the row
+    present_values = set([])
+    for p in range(N):
+        if game_state.board.get(i, p) != SudokuBoard.empty:
+            present_values.add(game_state.board.get(i, p))
+
+    # Return those values that are yet to be filled in in the block
+    return possible_values.difference(present_values)
+
+
+def check_possible_values_column(game_state, N, i, j, rows, columns) -> set:
+    """
+    Checks which values still need to be filled in in the column of the given cell.
+    @param game_state: The current state of the game
+    @param N: N
+    @param i: Row of the given cell
+    @param j: Column of the given cell
+    @return: Set of values still to be filled in in the block
+    """
+    lst = list(range(1, N+1))
+    possible_values = set(lst)
+
+    # Find the values already present in the row
+    present_values = set([])
+    for q in range(N):
+        if game_state.board.get(q, j) != SudokuBoard.empty:
+            present_values.add(game_state.board.get(q, j))
+
+    # Return those values that are yet to be filled in in the block
+    return possible_values.difference(present_values)
+
+
+if __name__ == '__main__':
+    from competitive_sudoku.sudoku import load_sudoku_from_text
+    import copy
+    from pathlib import Path
+    board_text = Path('boards/easy-3x3.txt').read_text()
+    board = load_sudoku_from_text(board_text)
+    game_state = GameState(board, copy.deepcopy(board), [], [], [0, 0])
+    all_possibilities(game_state)
+
