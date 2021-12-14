@@ -1,5 +1,7 @@
 import math
 
+from copy import deepcopy
+
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 
 
@@ -81,8 +83,6 @@ def leaves_row(board, N, i) -> int:
             count = count + 1
     return count
 
-
-    #return the number of empty squares in the column including the most recent move
 def leaves_col(board, N, j) -> int:
     """
     Compute the number of empty squares in the column j.
@@ -97,8 +97,6 @@ def leaves_col(board, N, j) -> int:
             count = count + 1
     return count
 
-
-    #return the number of empty squares in the region including the most recent move
 def leaves_square(board, i, j) -> int:
     """
     Compute the number of empty squares in the region containing entry (i, j).
@@ -119,21 +117,58 @@ def leaves_square(board, i, j) -> int:
     return count
 
 
-def immediate_gain(board: SudokuBoard, move: Move) -> int:
+def retrieve_board_status(board: SudokuBoard, move: Move):
     """
-    Calculate the score that can immediately be obtained by a move in the next turn.
-    @param board: The current board
-    @param move: The move to be performed
-    @return: The amount of points gained as a result from the move on the provided board
+    Count the empty slots in the regions of the input move and check how many immediate points can be gained from the board.
+    @param board:  The current board
+    @param move: The move that was performed
+    @return:
+        - A list containing how many empty cells there are in [square, col, row]
+        - The number of points that can immediately be scored on the remaining board
     """
     i, j = move.i, move.j
     N = board.N
-    leaves = [leaves_square(board, i, j) == 1, leaves_col(board, N, j) == 1, leaves_row(board, N, i) == 1]
+    empties = [leaves_square(board, i, j), leaves_col(board, N, j), leaves_row(board, N, i)]
 
-    move_score = leaves.count(True)
     scores = [0, 1, 3, 7]
+    obtainable_points = 0
 
-    return scores[move_score]
+    if empties[0] == 1:
+        # check the remaining empty in the same square
+        # check what filling in the last empty would do i.e. count the empties of that row, square and col
+        rows = board.m
+        columns = board.n
+        introw = math.ceil((i + 1) / rows)
+        intcol = math.ceil((j + 1) / columns)
+        for p in range(((introw - 1) * rows), (introw * rows)):
+            for q in range(((intcol - 1) * columns), (intcol * columns)):
+                if board.get(p, q) is SudokuBoard.empty:
+                    temp_board = deepcopy(board)
+                    temp_board.put(p, q, 1)
+                    square_completes = [completes_square(temp_board, p, q), completes_col(temp_board, N, q), completes_row(temp_board, N, p)]
+                    obtainable_points = max(obtainable_points, scores[square_completes.count(True)])
+
+    if empties[1] == 1:
+        # check the remaining empty in the same column
+        # check what filling in the last empty would do i.e. count the empties of that row, square and col
+        for p in range(N):
+            if board.get(p, j) is SudokuBoard.empty:
+                temp_board = deepcopy(board)
+                temp_board.put(p, j, 1)
+                col_completes = [completes_square(temp_board, p, j), completes_col(temp_board, N, j), completes_row(temp_board, N, p)]
+                obtainable_points = max(obtainable_points, scores[col_completes.count(True)])
+
+    if empties[2] == 1:
+        # check the remaining empty on the same row
+        # check what filling in the last empty would do i.e. count the empties of that row, square and col
+        for q in range(N):
+            if board.get(i, q) is SudokuBoard.empty:
+                temp_board = deepcopy(board)
+                temp_board.put(i, q, 1)
+                row_completes = [completes_square(temp_board, i, q), completes_col(temp_board, N, q), completes_row(temp_board, N, i)]
+                obtainable_points = max(obtainable_points, scores[row_completes.count(True)])
+
+    return empties, obtainable_points
 
 
 def prepares_sections(board: SudokuBoard, move: Move):
