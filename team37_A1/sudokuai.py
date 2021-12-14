@@ -70,7 +70,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 return False
         return True
 
-    def possible_move(self, game_state, i, j, value, rows, columns):
+    def possible_move(self, game_state, i, j, value):
         """
         Checks whether a certain turn is possible, that is:
          - the position of the board is non-empty
@@ -82,8 +82,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @param i: The row in which the agent will possibly insert
         @param j: The column in which the agent will possibly insert
         @param value: The value which the agent wishes to insert
-        @param rows: The # of rows (per block)
-        @param columns: The # of columns (per block)
         @return: Boolean indicating whether the move is possible (=True) or not (=False)
         """
         N = game_state.board.N
@@ -108,7 +106,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # Selects only those moves which do not violate the rules
         all_moves = [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if
-                     self.possible_move(game_state, i, j, value, rows, columns)]
+                     self.possible_move(game_state, i, j, value)]
 
         return all_moves
 
@@ -130,11 +128,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
             for _j in range(N):
                 taboo_move = Move(i, _j, value)
-                if not self.possible_move(game_state, i, _j, value, rows, columns):
+                if not self.possible_move(game_state, i, _j, value):
                     taboo_moves.append(taboo_move)
             for _i in range(N):
                 taboo_move = Move(_i, j, value)
-                if not self.possible_move(game_state, _i, j, value, rows, columns):
+                if not self.possible_move(game_state, _i, j, value):
                     taboo_moves.append(taboo_move)
 
         # Concatenate with the list of moves that were established to be taboo before
@@ -158,22 +156,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             new_gs.board.put(move.i, move.j, move.value)
             depth_1_scores.append(move_score(new_gs.board, move))
         return depth_1_scores
-
-    def determine_game_stage(self, game_state: GameState, all_moves: [Move], meta: Metadata) -> [Move]:
-        # Get a list of all moves that are certainly right
-        single_possibility = single_possibility_sudoku_rule(game_state)
-        if not single_possibility:
-            # Still in the early game
-            # Get list of possible moves, sorted by possible values in the squares
-            possible_moves = all_possibilities(game_state)
-            final_index = min(10, len(possible_moves))
-            # all_moves = list(possible_moves[:final_index].keys())
-
-        else:
-            # End game stage
-            all_moves = single_possibility
-
-        return all_moves
 
     def compute_best_move(self, game_state: GameState) -> None:
         """
@@ -245,7 +227,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # Get a list of moves that are certainly right
         all_moves = single_possibility_sudoku_rule(game_state)
-
         # If there are less than 3 moves of which we can be sure that they would not be rejected by the Oracle
         if len(all_moves) < 3:
             # EARLY GAME (or late game but then all moves are considered anyway by the below code)
@@ -253,12 +234,16 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             all_options = all_possibilities(game_state)
             all_moves = []
             # TODO: add a ratio to limit all_options
-            # Look at the first x cells (ratio of NxN)
+            # Look at the first x cells (ratio of NxM)
             count = 0
             for key in all_options:
                 # if count < x:
                 #     count += 1
-                all_moves.append(Move(key[0], key[1], all_options[key]))
+                for value in all_options[key]:
+                    all_moves.append(Move(key[0], key[1], value))
+
+        # Filter out any rule-breaking or taboo moves
+        all_moves = [move for move in all_moves if self.possible_move(game_state, move.i, move.j, move.value)]
 
         # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:
@@ -274,9 +259,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
             # Evaluate the leaf node based on the heuristics function "evaluate_state"
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
-
-        # Update the list of all moves according to the game stage we are in currently
-        all_moves = self.determine_game_stage(game_state, all_moves, meta)
 
         # Not a leaf node, compute the best option among the sub-trees according to the maximizing_player parameter
         if maximizing_player:
@@ -298,15 +280,19 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
                 # Update the metadata, note that meta.best_move and meta.best_value did not change (yet)
                 meta.setLast(move)
-                # Compute and compare the evaluation of further subtree's selecting the maximum of the highest found sub-tree and the current sub-tree
 
+                # Compute and compare the evaluation of further subtree's selecting the maximum of the highest found sub-tree and the current sub-tree
                 curr_value = self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1]
+                # Check whether a guaranteed unsolvable board was encountered
                 if curr_value is None:
+                    # Check whether it is the only option in the subtree
                     if len(all_moves) == 1:
+                        # If it is the only option, then ensure that the root of the subtree never picks this subtree
                         if maximizing_player:
                             return nullMove, math.inf, meta
                         else:
                             return nullMove, -math.inf, meta
+                    # Skip this move as it should never be picked
                     continue
                 new_value = max(best_value, curr_value)
 
@@ -341,14 +327,19 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
                 # Update the metadata, note that meta.best_move and meta.best_value did not change (yet)
                 meta.setLast(move)
+
                 # Compute and compare the evaluation of further subtree's selecting the minimum of the lowest found sub-tree and the current sub-tree
                 curr_value = self.alphabeta(new_gs, meta, True, depth - 1, alpha, beta)[1]
+                # Check whether a guaranteed unsolvable board was encountered
                 if curr_value is None:
+                    # Check whether it is the only option in the subtree
                     if len(all_moves) == 1:
+                        # If it is the only option, then ensure that the root of the subtree never picks this subtree
                         if maximizing_player:
                             return nullMove, math.inf, meta
                         else:
                             return nullMove, -math.inf, meta
+                    # Skip this move as it should never be picked
                     continue
                 new_value = min(best_value, curr_value)
 
