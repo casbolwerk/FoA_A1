@@ -227,8 +227,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # Get a list of moves that are certainly right
         all_moves = single_possibility_sudoku_rule(game_state)
+        poss_threshold = int(math.sqrt(game_state.board.N))
         # If there are less than 3 moves of which we can be sure that they would not be rejected by the Oracle
-        if len(all_moves) < 3:
+        if len(all_moves) < poss_threshold:
             # EARLY GAME (or late game but then all moves are considered anyway by the below code)
             # Retrieve the moves for the x cells where we can be most certain that the proposed values are right
             all_options = all_possibilities(game_state)
