@@ -9,8 +9,8 @@ from copy import deepcopy
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
-from team37_A1.heuristics import move_score, diff_score, immediate_gain, prepares_sections, \
-                                 single_possibility_sudoku_rule, all_possibilities, retrieve_board_status
+from team37_A1.heuristics import move_score, diff_score, prepares_sections, \
+                                 single_possibility_sudoku_rule, all_possibilities, retrieve_board_status # % immediate_gain
 from team37_A1.metadata import Metadata
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -248,20 +248,16 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # Get a list of moves that are certainly right
         all_moves = single_possibility_sudoku_rule(game_state)
 
-        # print("Available moves")
-        # for move in all_moves:
-        #     print("(" + str(move.i) + "," + str(move.j) + ") --> " + str(move.value))
-
-        # If there are less than 3 moves of which we can be sure that it won't be rejected by the Oracle
+        # If there are less than 3 moves of which we can be sure that they would not be rejected by the Oracle
         if len(all_moves) < 3:
-            # 'Early Game'
-            # Retrieve the moves for the 5 cells where we can be most certain that the proposed values are right
+            # EARLY GAME (or late game but then all moves are considered anyway by the below code)
+            # Retrieve the moves for the x cells where we can be most certain that the proposed values are right
             all_options = all_possibilities(game_state)
             all_moves = []
-            # Look at the first 5 cells
+            # Look at the first x cells (ratio of NxN)
             count = 0
             for key in all_options:
-                # if count < 10:
+                # if count < x:
                 #     count += 1
                 all_moves.append(Move(key[0], key[1], all_options[key]))
 
@@ -270,13 +266,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # Check if the game finished
             if len(all_moves) == 0:
                 if not self.hasEmpty(game_state.board):
-                    # As we've reach a state we cannot move from any longer so we return the final score of the board
+                    # The game has finished so we return the final score of the board
                     return nullMove, diff_score(game_state.scores), meta
                 else:
                     # We cannot perform any more moves but the game is not finished, we've hit a deadlock
                     # We avoid this deadlock path by returning -math.inf as the evaluation
                     return nullMove, -math.inf, meta
-
             # Evaluate the leaf node based on the heuristics function "evaluate_state"
             return nullMove, self.evaluate_state(game_state, meta.last_move), meta
 
@@ -305,7 +300,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 meta.setLast(move)
                 # Compute and compare the evaluation of further subtree's selecting the maximum of the highest found sub-tree and the current sub-tree
 
-                new_value = max(best_value, self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1])
+                curr_value = self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1]
+                new_value = max(best_value, curr_value)
                 
                 # Update best move and global value to the new move as long as it is better than the previous best
                 if new_value > best_value:
