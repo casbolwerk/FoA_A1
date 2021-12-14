@@ -214,7 +214,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         We do this through a never ending while loop which first computes the best move at some depth, proposes this move
         and then increments the depth by 1.
         """
-        while depth < 3:
+        while True:
             print('CURRENT DEPTH', depth)
             best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf)
             print('new best move:', best_move, 'for score', best_score)
