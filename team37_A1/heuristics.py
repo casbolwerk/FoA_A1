@@ -248,8 +248,8 @@ def possible_moves(game_state, N, i, j, rows, columns) -> int:
     """
     # Retrieve the sets of values that can be filled in in every region
     block = check_possible_values_block(game_state, N, i, j, rows, columns)
-    row = check_possible_values_row(game_state, N, i, j, rows, columns)
-    column = check_possible_values_column(game_state, N, i, j, rows, columns)
+    row = check_possible_values_row(game_state, N, i, j)
+    column = check_possible_values_column(game_state, N, i, j)
 
     # Take their intersection
     possible_values = block.intersection(row, column)
@@ -283,7 +283,7 @@ def check_possible_values_block(game_state, N, i, j, rows, columns) -> set:
     return possible_values.difference(present_values)
 
 
-def check_possible_values_row(game_state, N, i, j, rows, columns) -> set:
+def check_possible_values_row(game_state, N, i, j) -> set:
     """
     Checks which values still need to be filled in in the row of the given cell.
     @param game_state: The current state of the game
@@ -305,7 +305,7 @@ def check_possible_values_row(game_state, N, i, j, rows, columns) -> set:
     return possible_values.difference(present_values)
 
 
-def check_possible_values_column(game_state, N, i, j, rows, columns) -> set:
+def check_possible_values_column(game_state, N, i, j) -> set:
     """
     Checks which values still need to be filled in in the column of the given cell.
     @param game_state: The current state of the game
