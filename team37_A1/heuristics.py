@@ -128,8 +128,8 @@ def retrieve_board_status(board: SudokuBoard, move: Move):
     obtainable_points = 0
 
     if empties[0] == 1:
-        # check the remaining empty in the same square
-        # check what filling in the last empty would do i.e. count the empties of that row, square and col
+        # Check the remaining empty in the same square
+        # Check what filling in the last empty would do i.e. count the empties of that row, square and col
         rows = board.m
         columns = board.n
         introw = math.ceil((i + 1) / rows)
@@ -143,8 +143,8 @@ def retrieve_board_status(board: SudokuBoard, move: Move):
                     obtainable_points = max(obtainable_points, scores[square_completes.count(True)])
 
     if empties[1] == 1:
-        # check the remaining empty in the same column
-        # check what filling in the last empty would do i.e. count the empties of that row, square and col
+        # Check the remaining empty in the same column
+        # Check what filling in the last empty would do i.e. count the empties of that row, square and col
         for p in range(N):
             if board.get(p, j) is SudokuBoard.empty:
                 temp_board = deepcopy(board)
@@ -153,8 +153,8 @@ def retrieve_board_status(board: SudokuBoard, move: Move):
                 obtainable_points = max(obtainable_points, scores[col_completes.count(True)])
 
     if empties[2] == 1:
-        # check the remaining empty on the same row
-        # check what filling in the last empty would do i.e. count the empties of that row, square and col
+        # Check the remaining empty on the same row
+        # Check what filling in the last empty would do i.e. count the empties of that row, square and col
         for q in range(N):
             if board.get(i, q) is SudokuBoard.empty:
                 temp_board = deepcopy(board)
@@ -210,7 +210,8 @@ def single_possibility_sudoku_rule(game_state):
 
 def all_possibilities(game_state):
     """
-    Finds all possibilities for every square and sorts a dictionary with squares and number of possible values
+    Finds all possibilities for every empty square and sorts a dictionary with squares and number of possible values,
+    sorted such that those squares with fewest moves are in front of the dictionary.
     @param game_state: The current state of the game
     @return: Dictionary with empty squares and the amount of possible moves in those squares
     """
@@ -234,10 +235,9 @@ def all_possibilities(game_state):
 
     return possibilities
 
-def possible_moves(game_state, N, i, j, rows, columns) -> int:
+def possible_moves(game_state, N, i, j, rows, columns):
     """
-    For the given cell, checks if there is just one possible value that this cell can take and, in that case, returns
-    this value. If there is not just a single possible value, the function returns 0.
+    For the given cell, compute all possible moves available for the cell.
     @param game_state: The current state of the game
     @param N: The total number of options available in any region
     @param i: The row position
@@ -330,6 +330,7 @@ def compute_total_number_empty_cells(game_state):
     """
     Calculates the total number of empty cells on the board.
     @param game_state: The current state of the game
+    @return: The number of empty cells on the board
     """
     count = 0
     for m in range(game_state.board.N):
