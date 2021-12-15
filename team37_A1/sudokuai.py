@@ -11,7 +11,8 @@ import itertools
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 from team37_A1.heuristics import move_score, diff_score, prepares_sections, \
-                                 single_possibility_sudoku_rule, all_possibilities, retrieve_board_status
+                                 single_possibility_sudoku_rule, all_possibilities, retrieve_board_status, \
+                                    compute_total_number_empty_cells
 from team37_A1.metadata import Metadata
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -232,13 +233,16 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # Get a list of moves that are certainly right
         all_moves = single_possibility_sudoku_rule(game_state)
-        # If there are less than 3 moves of which we can be sure that they would not be rejected by the Oracle
-        if len(all_moves) < 3:
-            # EARLY GAME (or late game but then all moves are considered anyway by the below code)
+
+        # Calculate the number of empty cells on the board
+        empty_q = compute_total_number_empty_cells(game_state)
+
+        # If there are less half of the empty cells of which we know what value must be filled in
+        if len(all_moves) < int(empty_q/2):
+            # EARLY GAME
             # Retrieve the moves for the x cells where we can be most certain that the proposed values are right
             all_options = all_possibilities(game_state)
             all_moves = []
-            # TODO: add a ratio to limit all_options
             # Look at the first x cells (ratio of NxM)
             count = 0
             poss_threshold = int(game_state.board.N**2/2)

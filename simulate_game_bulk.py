@@ -4,13 +4,13 @@
 #  Software License, (See accompanying file LICENSE or copy at
 #  https://www.gnu.org/licenses/gpl-3.0.txt)
 """Usage: 
-    python  simulate_game_bulk.py --first=team19_A1 --second=greedy_player --board=boards/hard-3x3.txt  --iter=20 --workers=12 --time=.5
-    python  simulate_game_bulk.py --second=team19_A1 --first=greedy_player --board=boards/hard-3x3.txt  --iter=20 --workers=12 --time=.5
+    python  simulate_game_bulk.py --first=team37_A1 --second=greedy_player --board=boards/hard-3x3.txt  --iter=10 --workers=3 --time=1
+    python  simulate_game_bulk.py --second=team37_A1 --first=greedy_player --board=boards/hard-3x3.txt  --iter=10 --workers=3 --time=1
 
-    python  simulate_game_bulk.py --first=team19_A1 --second=greedy_player --board=boards\empty-3x3.txt --time=.5 --iter=30 --workers=12
-    python  simulate_game_bulk.py --first=greedy_player --second=team19_A1  --board=boards\empty-3x3.txt --time=.5 --iter=30 --workers=12
+    python  simulate_game_bulk.py --first=team37_A1 --second=greedy_player --board=boards/empty-3x3.txt --time=1 --iter=10 --workers=3
+    python  simulate_game_bulk.py --first=greedy_player --second=team37_A1  --board=boards/empty-3x3.txt --time=1 --iter=10 --workers=3
 
-    python simulate_game_bulk.py --first=team19_A1 --second=greedy_player --board=boards/empty-4x4.txt --iter=50 --workers=12 --time=.5 >> bulk_empty4x4
+    python simulate_game_bulk.py --first=team37_A1 --second=greedy_player --board=boards/empty-4x4.txt --iter=10 --workers=3 --time=1 >> bulk_empty4x4
 
     """
 

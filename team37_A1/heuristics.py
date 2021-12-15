@@ -325,3 +325,17 @@ def check_possible_values_column(game_state, N, i, j, rows, columns) -> set:
 
     # Return those values that are yet to be filled in in the block
     return possible_values.difference(present_values)
+
+def compute_total_number_empty_cells(game_state):
+    """
+    Calculates the total number of empty cells on the board.
+    @param game_state: The current state of the game
+    """
+    count = 0
+    for m in range(game_state.board.N):
+        for n in range(game_state.board.N):
+            if game_state.board.get(m, n) == SudokuBoard.empty:
+                count += 1
+
+    return count
+
