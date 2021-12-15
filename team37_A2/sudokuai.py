@@ -6,11 +6,14 @@ import random
 import time
 import math
 from copy import deepcopy
+import itertools
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
-from team37_SubA1.heuristics import move_score, diff_score, immediate_gain, prepares_sections
-from team37_SubA1.metadata import Metadata
+from team37_A2.heuristics import move_score, diff_score, prepares_sections, \
+                                 single_possibility_sudoku_rule, all_possibilities, retrieve_board_status, \
+                                    compute_total_number_empty_cells
+from team37_A2.metadata import Metadata
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
@@ -69,7 +72,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 return False
         return True
 
-    def possible_move(self, game_state, i, j, value, rows, columns):
+    def possible_move(self, game_state, i, j, value):
         """
         Checks whether a certain turn is possible, that is:
          - the position of the board is non-empty
@@ -81,8 +84,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @param i: The row in which the agent will possibly insert
         @param j: The column in which the agent will possibly insert
         @param value: The value which the agent wishes to insert
-        @param rows: The # of rows (per block)
-        @param columns: The # of columns (per block)
         @return: Boolean indicating whether the move is possible (=True) or not (=False)
         """
         N = game_state.board.N
@@ -107,7 +108,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # Selects only those moves which do not violate the rules
         all_moves = [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if
-                     self.possible_move(game_state, i, j, value, rows, columns)]
+                     self.possible_move(game_state, i, j, value)]
 
         return all_moves
 
@@ -129,11 +130,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
             for _j in range(N):
                 taboo_move = Move(i, _j, value)
-                if not self.possible_move(game_state, i, _j, value, rows, columns):
+                if not self.possible_move(game_state, i, _j, value):
                     taboo_moves.append(taboo_move)
             for _i in range(N):
                 taboo_move = Move(_i, j, value)
-                if not self.possible_move(game_state, _i, j, value, rows, columns):
+                if not self.possible_move(game_state, _i, j, value):
                     taboo_moves.append(taboo_move)
 
         # Concatenate with the list of moves that were established to be taboo before
@@ -165,6 +166,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @param game_state: The initial game state to calculate a move on.
         @return:
         """
+        curr_player = 1 if len(game_state.moves) % 2 == 0 else 2
         # Initiate a random valid move, so some move is always returned.
         # This is needed in case our minimax does not finish at least one evaluation to ensure we do not hit a "no move selected"
         #    as this would instantly lose us the game.
@@ -176,9 +178,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # Introducing a null move to allow for initial call
         nullMove = Move(-1, -1, -1)
 
-        # Set the initial starting depth
-        depth = 1
-
         """
         Initiate a Metadata object to be sent with the original alphabeta() function call, consisting of:
         - last_move: a null move as initiated above
@@ -187,6 +186,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
         meta = Metadata(nullMove, proposal, -math.inf)
 
+        # Set the initial starting depth
+        depth = 1
         """
         As the time per turn is undefined and we will be interrupted in a way that our last proposed move is used,
         we can incrementally increase the depth at which our alphabeta tree is evaluating game states.
@@ -194,9 +195,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         and then increments the depth by 1.
         """
         while True:
-            best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf)
+            best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf, curr_player)
             self.propose_move(best_move)
-
             depth = depth + 1
 
     def hasEmpty(self, board: SudokuBoard) -> bool:
@@ -211,7 +211,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     return True
         return False
 
-    def alphabeta(self, game_state: GameState, meta: Metadata, maximizing_player: bool, depth, alpha, beta) -> (Move, int, Metadata):
+    def alphabeta(self, game_state: GameState, meta: Metadata, maximizing_player: bool, depth, alpha, beta, curr_player) -> (Move, int, Metadata):
         """
         Perform a minimax algorithm using Alpha-Beta pruning.
         @param game_state: The current game state to consider at the root node of the alphabeta() routine
@@ -220,32 +220,53 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @param depth: The maximum depth the routine is supposed to reach
         @param alpha: The current alpha value to be considered for pruning
         @param beta: The current beta value to be considered for pruning
-        @return:
+        @param curr_player: Const for the player that is being played by the team37_A2 alphabeta
+        @return: (Move, int, Metadata)
+            - Move: the best move found
+            - int: the evaluation of the best move
+            - Metadata: a metadata packet from the resulting computation
         """
         # Default nullMove for referencing (this ensures that any call with no move is able to be compared with moves it may encounter)
         nullMove = Move(-1, -1, -1)
-        # Get a list of all possible moves using the input gamestate
-        all_moves = self.get_all_moves(game_state)
+
+        # Get a list of moves that are certainly right
+        all_moves = single_possibility_sudoku_rule(game_state)
+
+        # Calculate the number of empty cells on the board
+        empty_q = compute_total_number_empty_cells(game_state)
+
+        # If there are less half of the empty cells of which we know what value must be filled in
+        if len(all_moves) < int(empty_q/2):
+            # Enter the Early Game and execute alternative all_moves selection
+            # Retrieve the moves for the x cells where we can be most certain that the proposed values are right
+            all_options = all_possibilities(game_state)
+            all_moves = []
+            # Look at the first x cells (ratio of NxM)
+            count = 0
+            poss_threshold = int(game_state.board.N**2/2)
+            if not len(all_options) > poss_threshold:
+                poss_threshold = len(all_options)
+            for key in dict(itertools.islice(all_options.items(), poss_threshold)):
+                for value in all_options[key]:
+                    all_moves.append(Move(key[0], key[1], value))
+
+        # Filter out any rule-breaking or taboo moves
+        all_moves = [move for move in all_moves if self.possible_move(game_state, move.i, move.j, move.value)]
+
         # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:
             # Check if the game finished
             if len(all_moves) == 0:
                 if not self.hasEmpty(game_state.board):
-                    # As we've reach a state we cannot move from any longer so we return the final score of the board
+                    # The game has finished so we return the final score of the board
                     return nullMove, diff_score(game_state.scores), meta
                 else:
                     # We cannot perform any more moves but the game is not finished, we've hit a deadlock
-                    # We avoid this deadlock path by returning -math.inf as the evaluation
-                    return nullMove, -math.inf, meta
+                    # We avoid this deadlock path by checking for nullMoves in choosing best moves
+                    return nullMove, None, meta
 
             # Evaluate the leaf node based on the heuristics function "evaluate_state"
-            return nullMove, self.evaluate_state(game_state, meta.last_move), meta
-
-        depth_1_scores = self.check_random_move(game_state, all_moves)
-        if depth_1_scores.count(depth_1_scores[0]) == len(depth_1_scores) and depth_1_scores[0] == 0:
-            return random.choice(all_moves), 0, meta
-        else:
-            all_moves = [move for (move, depth_1_filter) in zip(all_moves, depth_1_scores) if depth_1_filter]
+            return nullMove, self.evaluate_state(game_state, meta.last_move, curr_player), meta
 
         # Not a leaf node, compute the best option among the sub-trees according to the maximizing_player parameter
         if maximizing_player:
@@ -267,26 +288,36 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
                 # Update the metadata, note that meta.best_move and meta.best_value did not change (yet)
                 meta.setLast(move)
-                # Compute and compare the evaluation of further subtree's selecting the maximum of the highest found sub-tree and the current sub-tree
-                new_value = max(best_value, self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1])
 
-                # Update best move and global value to the new move as long as it is at least as good as the previous best
-                if new_value >= best_value:
+                # Compute and compare the evaluation of further subtree's selecting the maximum of the highest found sub-tree and the current sub-tree
+                curr_value = self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta, curr_player)[1]
+                # Check whether a guaranteed unsolvable board was encountered
+                if curr_value is None:
+                    # Check whether it is the only option in the subtree
+                    if len(all_moves) == 1:
+                        # If it is the only option, then ensure that the root of the subtree never picks this subtree
+                        if maximizing_player:
+                            return nullMove, math.inf, meta
+                        else:
+                            return nullMove, -math.inf, meta
+                    # Skip this move as it should never be picked
+                    continue
+                new_value = max(best_value, curr_value)
+
+                if new_value > best_value:
+                    # Improvement found, update best move
                     best_value = new_value
                     best_move = move
 
-                # Compare the alpha and beta and break off further sub-tree computation if the alphabeta pruning requirement is met
-                if new_value >= beta:
-                    break
-
-                # Update the alpha value
                 alpha = max(alpha, new_value)
+
+                if beta <= alpha:
+                    break
 
             # Return the best move found at the root node
             return best_move, best_value, meta
         else:
             # This is the minimizing players actions
-
             # Start with infty
             best_value = math.inf
             # Pick a random move to ensure some move will be returned after computation
@@ -305,25 +336,37 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_gs.scores[player_number-1] = new_gs.scores[player_number-1] + move_score(new_gs.board, move)
                 # Update the metadata, note that meta.best_move and meta.best_value did not change (yet)
                 meta.setLast(move)
-                # Compute and compare the evaluation of further subtree's selecting the minimum of the lowest found sub-tree and the current sub-tree
-                new_value = min(best_value, self.alphabeta(new_gs, meta, True, depth - 1, alpha, beta)[1])
 
-                # Update best move and global value to the new move as long as it is at least as good as the previous best
+                # Compute and compare the evaluation of further subtree's selecting the minimum of the lowest found sub-tree and the current sub-tree
+                curr_value = self.alphabeta(new_gs, meta, True, depth - 1, alpha, beta, curr_player)[1]
+                # Check whether a guaranteed unsolvable board was encountered
+                if curr_value is None:
+                    # Check whether it is the only option in the subtree
+                    if len(all_moves) == 1:
+                        # If it is the only option, then ensure that the root of the subtree never picks this subtree
+                        if maximizing_player:
+                            return nullMove, math.inf, meta
+                        else:
+                            return nullMove, -math.inf, meta
+                    # Skip this move as it should never be picked
+                    continue
+                new_value = min(best_value, curr_value)
+
                 if new_value < best_value:
+                    # Found a better move, update best move
                     best_value = new_value
                     best_move = move
 
-                # compare the alpha to check for breakoff
-                if alpha >= new_value:
-                    #print('ALPHA BREAK', beta, '<=', alpha)
+                # Update beta value
+                beta = min(beta, new_value)
+
+                if beta <= alpha:
                     break
 
-                # Update the beta value
-                beta = min(beta, new_value)
             # Return the best move found at the root node
             return best_move, best_value, meta
 
-    def evaluate_state(self, game_state: GameState, last_move: Move) -> int:
+    def evaluate_state(self, game_state: GameState, last_move: Move, curr_player) -> int:
         """
         Evaluates the current state of the game.
         @param game_state: The game state to evaluate
@@ -334,28 +377,31 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         naive = True
 
         difference = diff_score(game_state.scores) #how much p1 is ahead of p2 (negative implies behind)
+        difference = difference if curr_player == 1 else difference * -1
         score_advantage = difference
 
         if not naive:
+            # Start a variable for the current board state:
+            board_score = 0
+            # Compute how many points were obtained using the last_move (Add higher priority to scored points by multiplying by 10)
+            score_obtained = move_score(game_state.board, last_move) * 10
             # Check who's turn it is
             curr_player_number = 1 if len(game_state.moves) % 2 == 0 else 2
-            # Compute whether there are points to be scored by the opponent in the next turn
-            possible_opp_gain = immediate_gain(game_state.board, last_move)
+            # Compute the number of empty cells left in the board as well as the amount of points the opponent can immediately score (potentially)
+            empties, possible_opp_gain = retrieve_board_status(game_state.board, last_move)
+            # Add higher priority to directly available points (on the same tier as directly scored points)
+            possible_opp_gain = possible_opp_gain * 10
 
-            # Check whether the game has ended with the last turn
-            if not hasEmpty(game_state.board):
-                # Check whether the resulting score is winning
-                winning = difference >= 0 if curr_player_number == 1 else difference < 0
-                # Update the evaluation based on whether the player is winning
-                if winning:
-                    score_advantage = score_advantage + 10 # if curr_player_number == 1 else score_advantage - 100
-            else:
-                # Otherwise use a combination of the score difference and the possible gain by the opponent (which reduces the score)
-                score_advantage = difference - possible_opp_gain if curr_player_number == 1 else difference + possible_opp_gain
+            # Score the board state +1 for each region that is left with an even number of empty cells and -1 for each region with an odd number of remaining empty cells
+            for region_empties in empties:
+                if region_empties % 2 == 0:
+                    board_score = board_score + 1
+                else:
+                    board_score = board_score - 1
+
+            # Update the board_score using the gained points, the possible gain from the opponent afterwards, and the difference in scores after the move is made
+            board_score = board_score + score_obtained - possible_opp_gain + difference
+
+            return board_score
 
         return score_advantage
-        
-        
-        
-        
-
