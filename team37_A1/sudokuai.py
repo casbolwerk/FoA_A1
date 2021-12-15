@@ -6,6 +6,7 @@ import random
 import time
 import math
 from copy import deepcopy
+import itertools
 
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
@@ -164,6 +165,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @param game_state: The initial game state to calculate a move on.
         @return:
         """
+        curr_player = 1 if len(game_state.moves) % 2 == 0 else 2
         # Initiate a random valid move, so some move is always returned.
         # This is needed in case our minimax does not finish at least one evaluation to ensure we do not hit a "no move selected"
         #    as this would instantly lose us the game.
@@ -192,7 +194,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         and then increments the depth by 1.
         """
         while True:
-            best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf)
+            # print('CURRENT DEPTH', depth)
+            best_move, best_score, meta = self.alphabeta(game_state, meta, True, depth, -math.inf, math.inf, curr_player)
+            # print('new best move', best_move, 'with a score of', best_score)
             self.propose_move(best_move)
             depth = depth + 1
 
@@ -208,7 +212,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     return True
         return False
 
-    def alphabeta(self, game_state: GameState, meta: Metadata, maximizing_player: bool, depth, alpha, beta) -> (Move, int, Metadata):
+    def alphabeta(self, game_state: GameState, meta: Metadata, maximizing_player: bool, depth, alpha, beta, curr_player) -> (Move, int, Metadata):
         """
         Perform a minimax algorithm using Alpha-Beta pruning.
         @param game_state: The current game state to consider at the root node of the alphabeta() routine
@@ -217,6 +221,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         @param depth: The maximum depth the routine is supposed to reach
         @param alpha: The current alpha value to be considered for pruning
         @param beta: The current beta value to be considered for pruning
+        @param curr_player: Const for the player that is being played by the team37_A1 alphabeta
         @return: (Move, int, Metadata)
             - Move: the best move found
             - int: the evaluation of the best move
@@ -227,9 +232,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # Get a list of moves that are certainly right
         all_moves = single_possibility_sudoku_rule(game_state)
-        poss_threshold = int(math.sqrt(game_state.board.N))
         # If there are less than 3 moves of which we can be sure that they would not be rejected by the Oracle
-        if len(all_moves) < poss_threshold:
+        if len(all_moves) < 3:
             # EARLY GAME (or late game but then all moves are considered anyway by the below code)
             # Retrieve the moves for the x cells where we can be most certain that the proposed values are right
             all_options = all_possibilities(game_state)
@@ -237,7 +241,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # TODO: add a ratio to limit all_options
             # Look at the first x cells (ratio of NxM)
             count = 0
-            for key in all_options:
+            poss_threshold = game_state.board.N**2/2
+            if not len(all_options) > poss_threshold:
+                poss_threshold = len(all_options)
+            # print('\n\nTHRESHOLD', poss_threshold)
+            for key in dict(itertools.islice(all_options.items(), poss_threshold)):
                 # if count < x:
                 #     count += 1
                 for value in all_options[key]:
@@ -248,6 +256,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # Check whether we reached a leaf node or the maximum depth we intend to search on
         if depth == 0 or len(all_moves) == 0:
+            # print("Evaluation of move: " + "Row: " + str(meta.last_move.i) + " Col: " + str(
+            #     meta.last_move.j) + " Value: " + str(meta.last_move.value) + " and evaluation score: " + str(
+            #     self.evaluate_state(game_state, meta.last_move, curr_player)))
             # Check if the game finished
             if len(all_moves) == 0:
                 if not self.hasEmpty(game_state.board):
@@ -259,10 +270,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     return nullMove, None, meta
 
             # Evaluate the leaf node based on the heuristics function "evaluate_state"
-            return nullMove, self.evaluate_state(game_state, meta.last_move), meta
+            return nullMove, self.evaluate_state(game_state, meta.last_move, curr_player), meta
 
         # Not a leaf node, compute the best option among the sub-trees according to the maximizing_player parameter
         if maximizing_player:
+            # if len(game_state.moves) > 0:
+            #     print('PREV MOVE IN GAME TREE', game_state.moves[-1])
             # Start with -infty
             best_value = -math.inf
             # Pick a random move to ensure some move will be returned after computation
@@ -283,7 +296,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 meta.setLast(move)
 
                 # Compute and compare the evaluation of further subtree's selecting the maximum of the highest found sub-tree and the current sub-tree
-                curr_value = self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta)[1]
+                curr_value = self.alphabeta(new_gs, meta, False, depth - 1, alpha, beta, curr_player)[1]
                 # Check whether a guaranteed unsolvable board was encountered
                 if curr_value is None:
                     # Check whether it is the only option in the subtree
@@ -298,6 +311,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_value = max(best_value, curr_value)
 
                 if new_value > best_value:
+                    # print("Alphabeta returns: " + "Score: " + str(curr_value) + " and compares that to prev best value " +
+                    #       str(best_value) + " and True if maximizing: " + str(maximizing_player))
+                    # moves = [str(move) for move in new_gs.moves]
+                    # if len(moves) > 3:
+                    #     for new_move in moves[:-3]:
+                    #         print(new_move)
                     best_value = new_value
                     best_move = move
 
@@ -309,6 +328,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # Return the best move found at the root node
             return best_move, best_value, meta
         else:
+            # if len(game_state.moves) > 0:
+            #     print('PREV MOVE IN GAME TREE', game_state.moves[-1])
             # This is the minimizing players actions
             # Start with infty
             best_value = math.inf
@@ -330,7 +351,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 meta.setLast(move)
 
                 # Compute and compare the evaluation of further subtree's selecting the minimum of the lowest found sub-tree and the current sub-tree
-                curr_value = self.alphabeta(new_gs, meta, True, depth - 1, alpha, beta)[1]
+                curr_value = self.alphabeta(new_gs, meta, True, depth - 1, alpha, beta, curr_player)[1]
                 # Check whether a guaranteed unsolvable board was encountered
                 if curr_value is None:
                     # Check whether it is the only option in the subtree
@@ -345,6 +366,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_value = min(best_value, curr_value)
 
                 if new_value < best_value:
+                    # print("Alphabeta returns: " + "Score: " + str(curr_value) + " and compares that to prev best value " +
+                    #       str(best_value) + " and True if maximizing: " + str(maximizing_player))
+                    # moves = [str(move) for move in new_gs.moves]
+                    # if len(moves) > 3:
+                    #     for new_move in moves[:-3]:
+                    #         print(new_move)
                     best_value = new_value
                     best_move = move
 
@@ -356,7 +383,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # Return the best move found at the root node
             return best_move, best_value, meta
 
-    def evaluate_state(self, game_state: GameState, last_move: Move) -> int:
+    def evaluate_state(self, game_state: GameState, last_move: Move, curr_player) -> int:
         """
         Evaluates the current state of the game.
         @param game_state: The game state to evaluate
@@ -365,9 +392,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
         # Use the naive implementation (only the score difference of the resulting board state)
         # A2 deadline: set naive to False
-        naive = False
+        naive = True
 
         difference = diff_score(game_state.scores) #how much p1 is ahead of p2 (negative implies behind)
+        difference = difference if curr_player == 1 else difference * -1
         score_advantage = difference
 
         if not naive:
