@@ -241,7 +241,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # TODO: add a ratio to limit all_options
             # Look at the first x cells (ratio of NxM)
             count = 0
-            poss_threshold = game_state.board.N**2/2
+            poss_threshold = int(game_state.board.N**2/2)
             if not len(all_options) > poss_threshold:
                 poss_threshold = len(all_options)
             # print('\n\nTHRESHOLD', poss_threshold)
